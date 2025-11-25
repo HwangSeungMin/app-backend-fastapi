@@ -1,0 +1,230 @@
+"""
+건강기능식품 도메인 지식 베이스
+
+증상-영양소 매핑, 성분 상호작용, 복용 시간 가이드 등
+도메인 전문 지식을 제공합니다.
+"""
+from typing import Dict, List, Optional
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+class HealthKnowledgeBase:
+    """건강기능식품 지식 베이스"""
+    
+    # 증상별 추천 영양소 매핑
+    SYMPTOM_NUTRIENT_MAP = {
+        "피로": {
+            "nutrients": ["비타민B1", "비타민B2", "비타민B6", "비타민B12", "마그네슘", "철분", "코엔자임Q10"],
+            "keywords": ["피로", "피곤", "지침", "무기력", "기력", "활력"],
+            "description": "피로 회복에는 비타민B군과 마그네슘이 도움이 됩니다."
+        },
+        "면역": {
+            "nutrients": ["비타민C", "비타민D", "아연", "셀레늄", "프로폴리스", "홍삼"],
+            "keywords": ["면역", "면역력", "저항력", "방어력", "감기", "독감"],
+            "description": "면역력 강화에는 비타민C, D와 아연이 효과적입니다."
+        },
+        "눈": {
+            "nutrients": ["루테인", "지아잔틴", "빌베리", "아스타잔틴", "비타민A", "오메가3"],
+            "keywords": ["눈", "시력", "안구", "눈건강", "시야", "침침", "뻑뻑"],
+            "description": "눈 건강에는 루테인, 지아잔틴, 오메가3가 도움이 됩니다."
+        },
+        "관절": {
+            "nutrients": ["MSM", "글루코사민", "콘드로이틴", "콜라겐", "보스웰리아"],
+            "keywords": ["관절", "무릎", "팔꿈치", "손목", "발목", "연골", "뼈마디"],
+            "description": "관절 건강에는 MSM, 글루코사민, 콘드로이틴이 효과적입니다."
+        },
+        "뼈": {
+            "nutrients": ["칼슘", "비타민D", "비타민K", "마그네슘"],
+            "keywords": ["뼈", "골다공증", "골밀도", "뼈건강"],
+            "description": "뼈 건강에는 칼슘과 비타민D를 함께 섭취하세요."
+        },
+        "혈액순환": {
+            "nutrients": ["오메가3", "은행잎", "코엔자임Q10", "아르기닌"],
+            "keywords": ["혈액순환", "혈행", "순환", "손발", "저림", "차가움"],
+            "description": "혈액순환 개선에는 오메가3와 은행잎이 도움이 됩니다."
+        },
+        "소화": {
+            "nutrients": ["프로바이오틱스", "소화효소", "알로에", "유산균"],
+            "keywords": ["소화", "장", "위", "배", "복통", "더부룩", "변비", "설사"],
+            "description": "소화 건강에는 프로바이오틱스와 소화효소가 효과적입니다."
+        },
+        "피부": {
+            "nutrients": ["콜라겐", "비타민C", "비타민E", "히알루론산", "세라마이드"],
+            "keywords": ["피부", "주름", "탄력", "건조", "피부건강", "미용"],
+            "description": "피부 건강에는 콜라겐과 비타민C가 도움이 됩니다."
+        },
+        "기억력": {
+            "nutrients": ["은행잎", "포스파티딜세린", "DHA", "EPA", "오메가3"],
+            "keywords": ["기억력", "집중력", "두뇌", "인지", "치매", "건망증"],
+            "description": "기억력 개선에는 은행잎과 DHA가 효과적입니다."
+        },
+        "간": {
+            "nutrients": ["밀크씨슬", "UDCA", "헛개나무", "표고버섯"],
+            "keywords": ["간", "간건강", "숙취", "해독", "간기능"],
+            "description": "간 건강에는 밀크씨슬과 UDCA가 도움이 됩니다."
+        },
+        "혈당": {
+            "nutrients": ["크롬", "바나듐", "알파리포산", "비타민B1"],
+            "keywords": ["혈당", "당뇨", "혈당조절", "인슐린"],
+            "description": "혈당 조절에는 크롬과 알파리포산이 도움이 됩니다."
+        },
+        "콜레스테롤": {
+            "nutrients": ["오메가3", "홍국", "식물스테롤", "키토산"],
+            "keywords": ["콜레스테롤", "고지혈증", "중성지방", "혈중지질"],
+            "description": "콜레스테롤 관리에는 오메가3와 홍국이 효과적입니다."
+        }
+    }
+    
+    # 성분 상호작용 정보
+    INGREDIENT_INTERACTIONS = {
+        "칼슘": {
+            "avoid_with": ["철분", "카페인", "탄산음료"],
+            "synergy_with": ["비타민D", "마그네슘", "비타민K"],
+            "timing": "저녁 식후",
+            "reason": "밤에 뼈 형성이 활발하고, 철분과 흡수 경쟁"
+        },
+        "철분": {
+            "avoid_with": ["칼슘", "녹차", "커피", "우유"],
+            "synergy_with": ["비타민C"],
+            "timing": "공복 또는 식간",
+            "reason": "비타민C와 함께 섭취 시 흡수율 증가"
+        },
+        "비타민D": {
+            "avoid_with": [],
+            "synergy_with": ["칼슘", "마그네슘"],
+            "timing": "아침 식후",
+            "reason": "지용성 비타민으로 기름진 음식과 함께"
+        },
+        "오메가3": {
+            "avoid_with": ["혈액응고제"],
+            "synergy_with": ["비타민E"],
+            "timing": "식후",
+            "reason": "지용성으로 식사와 함께 흡수율 증가"
+        },
+        "프로바이오틱스": {
+            "avoid_with": ["항생제", "뜨거운 음료"],
+            "synergy_with": ["프리바이오틱스", "식이섬유"],
+            "timing": "공복 또는 취침 전",
+            "reason": "위산 분비가 적을 때 생존율 증가"
+        },
+        "마그네슘": {
+            "avoid_with": [],
+            "synergy_with": ["칼슘", "비타민D", "비타민B6"],
+            "timing": "저녁 또는 취침 전",
+            "reason": "근육 이완과 수면 개선 효과"
+        }
+    }
+    
+    # 복용 시간 가이드
+    TIMING_GUIDE = {
+        "지용성_비타민": {
+            "ingredients": ["비타민A", "비타민D", "비타민E", "비타민K", "오메가3", "코엔자임Q10"],
+            "timing": "식후",
+            "reason": "지방과 함께 섭취 시 흡수율 증가"
+        },
+        "수용성_비타민": {
+            "ingredients": ["비타민B", "비타민C", "비타민B1", "비타민B2", "비타민B6", "비타민B12"],
+            "timing": "아침 식후",
+            "reason": "에너지 대사에 관여하여 아침 섭취 권장"
+        },
+        "공복_섭취": {
+            "ingredients": ["프로바이오틱스", "아미노산", "L-아르기닌"],
+            "timing": "공복 또는 식전 30분",
+            "reason": "위산 영향 최소화 및 흡수율 증가"
+        },
+        "취침_전": {
+            "ingredients": ["칼슘", "마그네슘", "멜라토닌", "테아닌"],
+            "timing": "취침 30분~1시간 전",
+            "reason": "수면 개선 및 야간 뼈 형성 촉진"
+        }
+    }
+    
+    # 카테고리별 기본 추천
+    DEFAULT_RECOMMENDATIONS = {
+        "피로/무기력": {
+            "products": ["비타민B 컴플렉스", "마그네슘", "홍삼", "코엔자임Q10"],
+            "message": "피로 회복에는 비타민B군과 마그네슘이 도움이 됩니다.",
+            "tips": ["충분한 수면", "규칙적인 운동", "스트레스 관리"]
+        },
+        "면역": {
+            "products": ["비타민C", "비타민D", "아연", "프로폴리스"],
+            "message": "면역력 강화에는 비타민C, D와 아연이 효과적입니다.",
+            "tips": ["균형잡힌 식사", "충분한 수면", "규칙적인 운동"]
+        },
+        "눈 건강": {
+            "products": ["루테인", "빌베리", "오메가3", "아스타잔틴"],
+            "message": "눈 건강에는 루테인과 오메가3가 도움이 됩니다.",
+            "tips": ["눈 휴식", "적절한 조명", "화면 시청 시간 조절"]
+        },
+        "관절": {
+            "products": ["MSM", "글루코사민", "콘드로이틴", "콜라겐"],
+            "message": "관절 건강에는 MSM, 글루코사민이 효과적입니다.",
+            "tips": ["적절한 체중 유지", "규칙적인 운동", "무리한 활동 자제"]
+        },
+        "뼈 건강": {
+            "products": ["칼슘", "비타민D", "마그네슘", "비타민K"],
+            "message": "뼈 건강에는 칼슘과 비타민D를 함께 섭취하세요.",
+            "tips": ["햇빛 쬐기", "체중 부하 운동", "금연"]
+        }
+    }
+    
+    def __init__(self):
+        logger.info("건강기능식품 지식 베이스 초기화")
+    
+    def get_nutrients_for_symptom(self, symptom: str) -> Optional[Dict]:
+        """증상에 대한 추천 영양소 조회"""
+        for category, info in self.SYMPTOM_NUTRIENT_MAP.items():
+            if any(keyword in symptom for keyword in info["keywords"]):
+                return {
+                    "category": category,
+                    "nutrients": info["nutrients"],
+                    "description": info["description"]
+                }
+        return None
+    
+    def get_interaction_info(self, ingredient: str) -> Optional[Dict]:
+        """성분 상호작용 정보 조회"""
+        for key, info in self.INGREDIENT_INTERACTIONS.items():
+            if key in ingredient or ingredient in key:
+                return {
+                    "ingredient": key,
+                    **info
+                }
+        return None
+    
+    def get_timing_recommendation(self, ingredient: str) -> Optional[Dict]:
+        """복용 시간 추천"""
+        for category, info in self.TIMING_GUIDE.items():
+            if any(ing in ingredient or ingredient in ing for ing in info["ingredients"]):
+                return {
+                    "category": category,
+                    "timing": info["timing"],
+                    "reason": info["reason"]
+                }
+        return None
+    
+    def get_default_recommendation(self, query: str) -> Optional[Dict]:
+        """기본 추천 조회"""
+        for category, info in self.DEFAULT_RECOMMENDATIONS.items():
+            if any(keyword in query for keyword in category.split("/")):
+                return {
+                    "category": category,
+                    **info
+                }
+        return None
+    
+    def get_all_symptom_keywords(self) -> List[str]:
+        """모든 증상 키워드 목록"""
+        keywords = []
+        for info in self.SYMPTOM_NUTRIENT_MAP.values():
+            keywords.extend(info["keywords"])
+        return list(set(keywords))
+    
+    def get_all_ingredients(self) -> List[str]:
+        """모든 성분 목록"""
+        ingredients = set()
+        for info in self.SYMPTOM_NUTRIENT_MAP.values():
+            ingredients.update(info["nutrients"])
+        return list(ingredients)
