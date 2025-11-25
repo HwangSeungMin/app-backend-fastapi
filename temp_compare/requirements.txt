@@ -1,0 +1,27 @@
+# Core Web Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-dotenv>=1.0.0
+
+# ElasticSearch
+elasticsearch==8.11.0
+
+# ML & Embeddings
+sentence-transformers>=2.2.2
+torch==2.2.0
+
+# Data Processing
+requests>=2.31.0
+numpy>=1.24.3,<2.0.0
+
+# Google SERP API
+google-search-results>=2.4.2
+
+# Google Gemini LLM
+google-genai==1.52.0
+
+# Validation
+pydantic>=2.5.0
+
+# Development & Testing
+pytest>=7.4.3

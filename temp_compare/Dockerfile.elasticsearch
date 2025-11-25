@@ -1,0 +1,10 @@
+# Nori 플러그인이 포함된 Elasticsearch 이미지
+FROM docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+
+# Nori 분석 플러그인 설치
+RUN bin/elasticsearch-plugin install analysis-nori --batch
+
+# 환경 설정
+ENV discovery.type=single-node
+ENV xpack.security.enabled=false
+ENV ES_JAVA_OPTS="-Xms512m -Xmx512m"
