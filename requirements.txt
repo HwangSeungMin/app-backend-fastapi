@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic-settings
+sqlalchemy
+alembic
+psycopg2-binary
+python-multipart
+requests
+elasticsearch
+openai
