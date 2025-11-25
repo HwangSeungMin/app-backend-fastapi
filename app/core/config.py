@@ -16,7 +16,58 @@ class Settings(BaseSettings):
         raise ValueError(v)
 
     DATABASE_URL: str = "sqlite:///./sql_app.db"
+
+    # Authentication
+    SECRET_KEY: str = "changethis"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    # RAG Settings
+    FOOD_SAFETY_API_KEY: str = ""
+    FOOD_SAFETY_BASE_URL: str = 'http://openapi.foodsafetykorea.go.kr/api'
+
+    # ElasticSearch
+    ELASTICSEARCH_URL: str = "http://localhost:9200"
+    ES_HOST: str = 'localhost'
+    ES_PORT: int = 9200
+    ES_INDEX_NAME: str = 'health_supplements'
     
+    # Embeddings
+    EMBEDDING_MODEL: str = 'jhgan/ko-sroberta-multitask'
+    EMBEDDING_DIM: int = 768
+    
+    # Search
+    DEFAULT_TOP_K: int = 5
+    VECTOR_WEIGHT: float = 0.8
+    KEYWORD_WEIGHT: float = 0.2
+    
+    # Data Collection
+    API_BATCH_SIZE: int = 1000
+    API_REQUEST_DELAY: float = 0.5
+
+    # Google SERP API
+    SERP_API_KEY: str = ""
+    SERP_API_ENABLED: bool = False
+    SERP_MAX_RESULTS: int = 5
+    SERP_TIMEOUT: int = 5
+
+    # Google Gemini LLM
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = 'gemini-pro'
+    GEMINI_TEMPERATURE: float = 0.7
+    GEMINI_MAX_OUTPUT_TOKENS: int = 500
+
+    # Weights
+    RAG_WEIGHT: float = 0.5
+    GEMINI_WEIGHT: float = 0.5
+
+    # Output
+    MAX_RESPONSE_LENGTH: int = 200
+
+    # Logging
+    LOG_LEVEL: str = "INFO"
+    LOG_FILE: str = "logs/app.log"
+
     class Config:
         case_sensitive = True
         env_file = ".env"

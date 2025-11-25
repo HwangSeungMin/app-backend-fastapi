@@ -1,0 +1,141 @@
+=== 누락된 파일 ===
+
+app.py
+  원본: d:\yakkobak_be\temp_compare\api\app.py
+  위치: d:\yakkobak_be\app\api\v1\endpoints\rag\app.py
+
+schemas.py
+  원본: d:\yakkobak_be\temp_compare\api\schemas.py
+  위치: d:\yakkobak_be\app\api\v1\endpoints\rag\schemas.py
+
+settings.py
+  원본: d:\yakkobak_be\temp_compare\config\settings.py
+  위치: d:\yakkobak_be\app\core\settings.py
+
+
+=== 내용이 다른 파일 ===
+
+routes.py
+  원본: d:\yakkobak_be\temp_compare\api\routes.py
+  통합: d:\yakkobak_be\app\api\v1\endpoints\rag\routes.py
+
+elasticsearch_config.py
+  원본: d:\yakkobak_be\temp_compare\config\elasticsearch_config.py
+  통합: d:\yakkobak_be\app\core\elasticsearch_config.py
+
+elasticsearch_manager.py
+  원본: d:\yakkobak_be\temp_compare\search\elasticsearch_manager.py
+  통합: d:\yakkobak_be\app\search\elasticsearch_manager.py
+
+embeddings.py
+  원본: d:\yakkobak_be\temp_compare\search\embeddings.py
+  통합: d:\yakkobak_be\app\search\embeddings.py
+
+fallback_system.py
+  원본: d:\yakkobak_be\temp_compare\search\fallback_system.py
+  통합: d:\yakkobak_be\app\search\fallback_system.py
+
+query_analyzer.py
+  원본: d:\yakkobak_be\temp_compare\search\query_analyzer.py
+  통합: d:\yakkobak_be\app\search\query_analyzer.py
+
+rag_search.py
+  원본: d:\yakkobak_be\temp_compare\search\rag_search.py
+  통합: d:\yakkobak_be\app\search\rag_search.py
+
+reranker.py
+  원본: d:\yakkobak_be\temp_compare\search\reranker.py
+  통합: d:\yakkobak_be\app\search\reranker.py
+
+smart_router.py
+  원본: d:\yakkobak_be\temp_compare\search\smart_router.py
+  통합: d:\yakkobak_be\app\search\smart_router.py
+
+gemini_service.py
+  원본: d:\yakkobak_be\temp_compare\services\gemini_service.py
+  통합: d:\yakkobak_be\app\services\rag\gemini_service.py
+
+recommendation_service.py
+  원본: d:\yakkobak_be\temp_compare\services\recommendation_service.py
+  통합: d:\yakkobak_be\app\services\rag\recommendation_service.py
+
+serp_service.py
+  원본: d:\yakkobak_be\temp_compare\services\serp_service.py
+  통합: d:\yakkobak_be\app\services\rag\serp_service.py
+
+timing_service.py
+  원본: d:\yakkobak_be\temp_compare\services\timing_service.py
+  통합: d:\yakkobak_be\app\services\rag\timing_service.py
+
+knowledge_base.py
+  원본: d:\yakkobak_be\temp_compare\utils\knowledge_base.py
+  통합: d:\yakkobak_be\app\utils\knowledge_base.py
+
+logger.py
+  원본: d:\yakkobak_be\temp_compare\utils\logger.py
+  통합: d:\yakkobak_be\app\utils\logger.py
+
+api_client.py
+  원본: d:\yakkobak_be\temp_compare\data\api_client.py
+  통합: d:\yakkobak_be\data\api_client.py
+
+data_processor.py
+  원본: d:\yakkobak_be\temp_compare\data\data_processor.py
+  통합: d:\yakkobak_be\data\data_processor.py
+
+collect_additional_data.py
+  원본: d:\yakkobak_be\temp_compare\scripts\collect_additional_data.py
+  통합: d:\yakkobak_be\scripts\collect_additional_data.py
+
+create_advanced_dashboard.py
+  원본: d:\yakkobak_be\temp_compare\scripts\create_advanced_dashboard.py
+  통합: d:\yakkobak_be\scripts\create_advanced_dashboard.py
+
+incremental_index.py
+  원본: d:\yakkobak_be\temp_compare\scripts\incremental_index.py
+  통합: d:\yakkobak_be\scripts\incremental_index.py
+
+load_faq_data.py
+  원본: d:\yakkobak_be\temp_compare\scripts\load_faq_data.py
+  통합: d:\yakkobak_be\scripts\load_faq_data.py
+
+remove_duplicates.py
+  원본: d:\yakkobak_be\temp_compare\scripts\remove_duplicates.py
+  통합: d:\yakkobak_be\scripts\remove_duplicates.py
+
+setup_data.py
+  원본: d:\yakkobak_be\temp_compare\scripts\setup_data.py
+  통합: d:\yakkobak_be\scripts\setup_data.py
+
+setup_kibana_dashboard.py
+  원본: d:\yakkobak_be\temp_compare\scripts\setup_kibana_dashboard.py
+  통합: d:\yakkobak_be\scripts\setup_kibana_dashboard.py
+
+test_encoding.py
+  원본: d:\yakkobak_be\temp_compare\scripts\test_encoding.py
+  통합: d:\yakkobak_be\scripts\test_encoding.py
+
+test_faq_integration.py
+  원본: d:\yakkobak_be\temp_compare\scripts\test_faq_integration.py
+  통합: d:\yakkobak_be\scripts\test_faq_integration.py
+
+test_search.py
+  원본: d:\yakkobak_be\temp_compare\scripts\test_search.py
+  통합: d:\yakkobak_be\scripts\test_search.py
+
+test_serp_integration.py
+  원본: d:\yakkobak_be\temp_compare\scripts\test_serp_integration.py
+  통합: d:\yakkobak_be\scripts\test_serp_integration.py
+
+test_timing_only.py
+  원본: d:\yakkobak_be\temp_compare\scripts\test_timing_only.py
+  통합: d:\yakkobak_be\scripts\test_timing_only.py
+
+update_index.py
+  원본: d:\yakkobak_be\temp_compare\scripts\update_index.py
+  통합: d:\yakkobak_be\scripts\update_index.py
+
+update_knowledge_base.py
+  원본: d:\yakkobak_be\temp_compare\scripts\update_knowledge_base.py
+  통합: d:\yakkobak_be\scripts\update_knowledge_base.py
+
