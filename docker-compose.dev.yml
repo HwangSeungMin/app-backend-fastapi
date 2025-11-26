@@ -1,12 +1,12 @@
 version: '3.8'
 
 services:
-  # FastAPI 애플리케이션
+  # FastAPI 애플리케이션 (개발 모드)
   api:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: yakkobak-api
+      dockerfile: Dockerfile.dev
+    container_name: yakkobak-api-dev
     ports:
       - "8000:8000"
     environment:
@@ -14,9 +14,12 @@ services:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - ES_HOST=elasticsearch
       - ES_PORT=9200
+      - LOG_LEVEL=DEBUG
     env_file:
       - .env
     volumes:
+      - .:/app # 소스 코드 hot reload
+      - /app/venv # venv 제외
       - ./logs:/app/logs
     networks:
       - yakkobak-network
@@ -24,19 +27,14 @@ services:
       elasticsearch:
         condition: service_healthy
     restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   # Elasticsearch
   elasticsearch:
     build:
       context: .
       dockerfile: Dockerfile.elasticsearch
-    container_name: yakkobak-es
+    container_name: yakkobak-es-dev
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -60,7 +58,7 @@ services:
   # Kibana
   kibana:
     image: docker.elastic.co/kibana/kibana:8.11.0
-    container_name: yakkobak-kibana
+    container_name: yakkobak-kibana-dev
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - SERVER_NAME=kibana

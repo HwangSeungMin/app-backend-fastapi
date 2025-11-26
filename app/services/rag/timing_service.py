@@ -7,20 +7,57 @@ class TimingService:
     """영양제 복용 시간 추천 서비스"""
 
     def __init__(self):
-        # 성분별 복용 시간 규칙
+        # 성분별 복용 시간 규칙 (50가지 영양 성분)
         self.timing_rules = {
-            '철분': {
-                'timing_type': '공복',
-                'reason': '철분은 공복에 흡수율이 가장 높습니다.',
-                'avoid_with': ['칼슘', '커피', '차', '우유'],
+            # ========== 비타민류 (14개) ==========
+            '비타민A': {
+                'timing_type': '식후',
+                'reason': '비타민A는 지용성 비타민으로 지방과 함께 섭취 시 흡수율이 높습니다.',
+                'avoid_with': [],
                 'recommended_times': [
-                    {'time': '기상 직후', 'description': '아침 공복', 'priority': 1},
-                    {'time': '식사 30분 전', 'description': '점심 식사 전', 'priority': 2},
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
                 ]
             },
-            '비타민D': {
-                'timing_type': '식후',
-                'reason': '비타민D는 지용성 비타민으로 지방과 함께 섭취 시 흡수율이 높습니다.',
+            '비타민B1': {
+                'timing_type': '아침 식후',
+                'reason': '티아민은 에너지 대사에 관여하므로 아침에 섭취하는 것이 좋습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '비타민B2': {
+                'timing_type': '아침 식후',
+                'reason': '리보플라빈은 에너지 생성에 필요하므로 아침 섭취가 효과적입니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '비타민B6': {
+                'timing_type': '아침 식후',
+                'reason': '피리독신은 신경전달물질 합성에 관여하므로 아침 섭취가 좋습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '비타민B12': {
+                'timing_type': '아침 식후',
+                'reason': '코발라민은 에너지 대사와 적혈구 생성에 관여하므로 아침 섭취가 효과적입니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '비타민B': {
+                'timing_type': '아침 식후',
+                'reason': '비타민B는 에너지 대사에 관여하므로 아침에 섭취하는 것이 좋습니다.',
                 'avoid_with': [],
                 'recommended_times': [
                     {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
@@ -34,6 +71,80 @@ class TimingService:
                 'recommended_times': [
                     {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
                     {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            '비타민D': {
+                'timing_type': '식후',
+                'reason': '비타민D는 지용성 비타민으로 지방과 함께 섭취 시 흡수율이 높습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '비타민E': {
+                'timing_type': '식후',
+                'reason': '비타민E는 지용성 비타민으로 지방과 함께 섭취 시 흡수율이 높습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            '비타민K': {
+                'timing_type': '식후',
+                'reason': '비타민K는 지용성 비타민으로 지방과 함께 섭취 시 흡수율이 높습니다.',
+                'avoid_with': ['항응고제'],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '엽산': {
+                'timing_type': '아침 공복',
+                'reason': '엽산은 공복에 흡수율이 높으며, 세포 분열과 DNA 합성에 필수적입니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '기상 직후', 'description': '아침 공복', 'priority': 1},
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 2},
+                ]
+            },
+            '나이아신': {
+                'timing_type': '식후',
+                'reason': '나이아신은 식후 섭취 시 홍조 부작용을 줄일 수 있습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            '판토텐산': {
+                'timing_type': '아침 식후',
+                'reason': '판토텐산은 에너지 대사에 관여하므로 아침 섭취가 좋습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '비오틴': {
+                'timing_type': '아침 식후',
+                'reason': '비오틴은 에너지 대사와 피부 건강에 관여하므로 아침 섭취가 효과적입니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            
+            # ========== 미네랄류 (12개) ==========
+            '철분': {
+                'timing_type': '공복',
+                'reason': '철분은 공복에 흡수율이 가장 높습니다.',
+                'avoid_with': ['칼슘', '커피', '차', '우유'],
+                'recommended_times': [
+                    {'time': '기상 직후', 'description': '아침 공복', 'priority': 1},
+                    {'time': '식사 30분 전', 'description': '점심 식사 전', 'priority': 2},
                 ]
             },
             '칼슘': {
@@ -54,24 +165,6 @@ class TimingService:
                     {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
                 ]
             },
-            '오메가3': {
-                'timing_type': '식후',
-                'reason': '오메가3는 지용성이므로 식사와 함께 섭취하면 흡수율이 높아집니다.',
-                'avoid_with': [],
-                'recommended_times': [
-                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
-                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
-                ]
-            },
-            '비타민B': {
-                'timing_type': '아침 식후',
-                'reason': '비타민B는 에너지 대사에 관여하므로 아침에 섭취하는 것이 좋습니다.',
-                'avoid_with': [],
-                'recommended_times': [
-                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
-                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
-                ]
-            },
             '아연': {
                 'timing_type': '공복 또는 식후',
                 'reason': '아연은 공복에 흡수율이 높지만, 위장 자극이 있을 수 있어 식후도 가능합니다.',
@@ -81,6 +174,109 @@ class TimingService:
                     {'time': '저녁 식사 후', 'description': '저녁 식사 2시간 후', 'priority': 2},
                 ]
             },
+            '셀레늄': {
+                'timing_type': '식후',
+                'reason': '셀레늄은 식후 섭취 시 흡수율이 높고 위장 자극을 줄일 수 있습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '구리': {
+                'timing_type': '식후',
+                'reason': '구리는 식후 섭취 시 흡수율이 높습니다.',
+                'avoid_with': ['아연'],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '망간': {
+                'timing_type': '식후',
+                'reason': '망간은 식후 섭취 시 흡수율이 높고 위장 자극을 줄일 수 있습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '크롬': {
+                'timing_type': '식후',
+                'reason': '크롬은 혈당 조절에 도움이 되므로 식후 섭취가 효과적입니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '요오드': {
+                'timing_type': '아침 공복',
+                'reason': '요오드는 갑상선 호르몬 합성에 필요하므로 아침 공복 섭취가 좋습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '기상 직후', 'description': '아침 공복', 'priority': 1},
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 2},
+                ]
+            },
+            '칼륨': {
+                'timing_type': '식후',
+                'reason': '칼륨은 식후 섭취 시 위장 자극을 줄일 수 있습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            '몰리브덴': {
+                'timing_type': '식후',
+                'reason': '몰리브덴은 식후 섭취 시 흡수율이 높습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '인': {
+                'timing_type': '식후',
+                'reason': '인은 칼슘과 함께 뼈 건강에 중요하므로 식후 섭취가 좋습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            
+            # ========== 오메가 지방산 (3개) ==========
+            '오메가3': {
+                'timing_type': '식후',
+                'reason': '오메가3는 지용성이므로 식사와 함께 섭취하면 흡수율이 높아집니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            '오메가6': {
+                'timing_type': '식후',
+                'reason': '오메가6는 지용성이므로 식사와 함께 섭취하면 흡수율이 높아집니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            '오메가9': {
+                'timing_type': '식후',
+                'reason': '오메가9는 지용성이므로 식사와 함께 섭취하면 흡수율이 높아집니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            
+            # ========== 프로바이오틱스 & 소화효소 (2개) ==========
             '프로바이오틱스': {
                 'timing_type': '공복',
                 'reason': '프로바이오틱스는 공복에 섭취하면 위산의 영향을 덜 받아 장까지 잘 도달합니다.',
@@ -88,6 +284,194 @@ class TimingService:
                 'recommended_times': [
                     {'time': '기상 직후', 'description': '아침 공복', 'priority': 1},
                     {'time': '취침 전', 'description': '잠들기 전', 'priority': 2},
+                ]
+            },
+            '소화효소': {
+                'timing_type': '식사 직전',
+                'reason': '소화효소는 식사 직전 섭취 시 음식물 분해를 효과적으로 도울 수 있습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '식사 10분 전', 'description': '식사 10분 전', 'priority': 1},
+                    {'time': '식사 직전', 'description': '식사 직전', 'priority': 2},
+                ]
+            },
+            
+            # ========== 항산화제 (5개) ==========
+            '코엔자임Q10': {
+                'timing_type': '식후',
+                'reason': '코엔자임Q10은 지용성이므로 지방과 함께 섭취 시 흡수율이 높습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '알파리포산': {
+                'timing_type': '공복',
+                'reason': '알파리포산은 공복에 흡수율이 높습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '기상 직후', 'description': '아침 공복', 'priority': 1},
+                    {'time': '식사 30분 전', 'description': '식사 30분 전', 'priority': 2},
+                ]
+            },
+            '루테인': {
+                'timing_type': '식후',
+                'reason': '루테인은 지용성이므로 지방과 함께 섭취 시 흡수율이 높습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '아스타잔틴': {
+                'timing_type': '식후',
+                'reason': '아스타잔틴은 지용성이므로 지방과 함께 섭취 시 흡수율이 높습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            '레스베라트롤': {
+                'timing_type': '식후',
+                'reason': '레스베라트롤은 식후 섭취 시 흡수율이 높습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            
+            # ========== 아미노산 (5개) ==========
+            'L-카르니틴': {
+                'timing_type': '운동 전',
+                'reason': 'L-카르니틴은 지방 연소를 돕므로 운동 30분~1시간 전 섭취가 효과적입니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '운동 30분 전', 'description': '운동 30분 전', 'priority': 1},
+                    {'time': '아침 공복', 'description': '아침 공복', 'priority': 2},
+                ]
+            },
+            'L-아르기닌': {
+                'timing_type': '공복',
+                'reason': 'L-아르기닌은 공복에 흡수율이 높으며, 혈류 개선에 도움이 됩니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '기상 직후', 'description': '아침 공복', 'priority': 1},
+                    {'time': '운동 전', 'description': '운동 30분 전', 'priority': 2},
+                ]
+            },
+            'L-글루타민': {
+                'timing_type': '운동 후',
+                'reason': 'L-글루타민은 근육 회복을 돕므로 운동 후 섭취가 효과적입니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '운동 직후', 'description': '운동 직후', 'priority': 1},
+                    {'time': '취침 전', 'description': '취침 전', 'priority': 2},
+                ]
+            },
+            'BCAA': {
+                'timing_type': '운동 전후',
+                'reason': 'BCAA는 근육 분해를 막고 회복을 돕므로 운동 전후 섭취가 좋습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '운동 30분 전', 'description': '운동 30분 전', 'priority': 1},
+                    {'time': '운동 직후', 'description': '운동 직후', 'priority': 2},
+                ]
+            },
+            'L-테아닌': {
+                'timing_type': '취침 전',
+                'reason': 'L-테아닌은 이완 효과가 있어 취침 전 섭취가 수면에 도움이 됩니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '취침 30분 전', 'description': '취침 30분 전', 'priority': 1},
+                    {'time': '스트레스 상황', 'description': '스트레스 상황', 'priority': 2},
+                ]
+            },
+            
+            # ========== 관절/뼈 건강 (4개) ==========
+            '글루코사민': {
+                'timing_type': '식후',
+                'reason': '글루코사민은 식후 섭취 시 위장 자극을 줄일 수 있습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            '콘드로이틴': {
+                'timing_type': '식후',
+                'reason': '콘드로이틴은 식후 섭취 시 흡수율이 높고 위장 자극을 줄일 수 있습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            'MSM': {
+                'timing_type': '식후',
+                'reason': 'MSM은 식후 섭취 시 위장 자극을 줄일 수 있습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            '콜라겐': {
+                'timing_type': '취침 전',
+                'reason': '콜라겐은 취침 중 피부 재생이 활발하므로 취침 전 섭취가 효과적입니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '취침 1시간 전', 'description': '취침 1시간 전', 'priority': 1},
+                    {'time': '공복', 'description': '아침 공복', 'priority': 2},
+                ]
+            },
+            
+            # ========== 허브/식물 추출물 (5개) ==========
+            '밀크씨슬': {
+                'timing_type': '식후',
+                'reason': '밀크씨슬은 간 건강에 도움이 되며, 식후 섭취 시 흡수율이 높습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            '홍삼': {
+                'timing_type': '아침 공복',
+                'reason': '홍삼은 공복에 흡수율이 높으며, 에너지 증진 효과가 있어 아침 섭취가 좋습니다.',
+                'avoid_with': ['커피'],
+                'recommended_times': [
+                    {'time': '기상 직후', 'description': '아침 공복', 'priority': 1},
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 2},
+                ]
+            },
+            '은행잎추출물': {
+                'timing_type': '식후',
+                'reason': '은행잎추출물은 혈액순환 개선에 도움이 되며, 식후 섭취가 좋습니다.',
+                'avoid_with': ['항응고제'],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '점심 식사 후', 'description': '점심 식사 직후', 'priority': 2},
+                ]
+            },
+            '커큐민': {
+                'timing_type': '식후',
+                'reason': '커큐민은 지용성이므로 지방과 함께 섭취 시 흡수율이 높습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '아침 식사 후', 'description': '아침 식사 직후', 'priority': 1},
+                    {'time': '저녁 식사 후', 'description': '저녁 식사 직후', 'priority': 2},
+                ]
+            },
+            '프로폴리스': {
+                'timing_type': '공복',
+                'reason': '프로폴리스는 공복에 흡수율이 높으며, 면역 증진 효과가 있습니다.',
+                'avoid_with': [],
+                'recommended_times': [
+                    {'time': '기상 직후', 'description': '아침 공복', 'priority': 1},
+                    {'time': '취침 전', 'description': '취침 전', 'priority': 2},
                 ]
             },
         }
@@ -309,21 +693,199 @@ class TimingService:
         # 공백 제거 및 소문자 변환
         normalized = ingredient.strip()
 
-        # 별칭 처리
+        # 별칭 처리 (50개 성분 지원)
         aliases = {
-            '비타민디': '비타민D',
-            'vitamin d': '비타민D',
-            'vitamin D': '비타민D',
-            '비타민씨': '비타민C',
-            'vitamin c': '비타민C',
-            'vitamin C': '비타민C',
+            # 비타민류
+            '비타민에이': '비타민A',
+            'vitamin a': '비타민A',
+            'vitamin A': '비타민A',
+            '레티놀': '비타민A',
+            'retinol': '비타민A',
+            
+            '티아민': '비타민B1',
+            'thiamine': '비타민B1',
+            'vitamin b1': '비타민B1',
+            
+            '리보플라빈': '비타민B2',
+            'riboflavin': '비타민B2',
+            'vitamin b2': '비타민B2',
+            
+            '피리독신': '비타민B6',
+            'pyridoxine': '비타민B6',
+            'vitamin b6': '비타민B6',
+            
+            '코발라민': '비타민B12',
+            'cobalamin': '비타민B12',
+            'vitamin b12': '비타민B12',
+            
             '비타민비': '비타민B',
             'vitamin b': '비타민B',
             'vitamin B': '비타민B',
+            '비타민B군': '비타민B',
+            '비타민B복합체': '비타민B',
+            
+            '비타민씨': '비타민C',
+            'vitamin c': '비타민C',
+            'vitamin C': '비타민C',
+            '아스코르브산': '비타민C',
+            'ascorbic acid': '비타민C',
+            
+            '비타민디': '비타민D',
+            'vitamin d': '비타민D',
+            'vitamin D': '비타민D',
+            '칼시페롤': '비타민D',
+            'calciferol': '비타민D',
+            
+            '비타민이': '비타민E',
+            'vitamin e': '비타민E',
+            'vitamin E': '비타민E',
+            '토코페롤': '비타민E',
+            'tocopherol': '비타민E',
+            
+            '비타민케이': '비타민K',
+            'vitamin k': '비타민K',
+            'vitamin K': '비타민K',
+            
+            '폴산': '엽산',
+            'folic acid': '엽산',
+            'folate': '엽산',
+            
+            '니아신': '나이아신',
+            'niacin': '나이아신',
+            'vitamin b3': '나이아신',
+            
+            '판토텐': '판토텐산',
+            'pantothenic acid': '판토텐산',
+            'vitamin b5': '판토텐산',
+            
+            'biotin': '비오틴',
+            'vitamin b7': '비오틴',
+            'vitamin h': '비오틴',
+            
+            # 미네랄류
+            'iron': '철분',
+            'fe': '철분',
+            
+            'calcium': '칼슘',
+            'ca': '칼슘',
+            
+            'magnesium': '마그네슘',
+            'mg': '마그네슘',
+            
+            'zinc': '아연',
+            'zn': '아연',
+            
+            'selenium': '셀레늄',
+            'se': '셀레늄',
+            
+            'copper': '구리',
+            'cu': '구리',
+            
+            'manganese': '망간',
+            'mn': '망간',
+            
+            'chromium': '크롬',
+            'cr': '크롬',
+            
+            'iodine': '요오드',
+            'i': '요오드',
+            '아이오딘': '요오드',
+            
+            'potassium': '칼륨',
+            'k': '칼륨',
+            
+            'molybdenum': '몰리브덴',
+            'mo': '몰리브덴',
+            
+            'phosphorus': '인',
+            'p': '인',
+            
+            # 오메가 지방산
             'omega3': '오메가3',
             'omega-3': '오메가3',
+            'omega 3': '오메가3',
+            'dha': '오메가3',
+            'epa': '오메가3',
+            
+            'omega6': '오메가6',
+            'omega-6': '오메가6',
+            'omega 6': '오메가6',
+            
+            'omega9': '오메가9',
+            'omega-9': '오메가9',
+            'omega 9': '오메가9',
+            
+            # 프로바이오틱스
             '유산균': '프로바이오틱스',
             'probiotics': '프로바이오틱스',
+            '락토바실러스': '프로바이오틱스',
+            '비피더스균': '프로바이오틱스',
+            
+            # 항산화제
+            'coq10': '코엔자임Q10',
+            'coenzyme q10': '코엔자임Q10',
+            '코큐텐': '코엔자임Q10',
+            
+            'alpha lipoic acid': '알파리포산',
+            'ala': '알파리포산',
+            
+            'lutein': '루테인',
+            '지아잔틴': '루테인',
+            
+            'astaxanthin': '아스타잔틴',
+            
+            'resveratrol': '레스베라트롤',
+            
+            # 아미노산
+            'l-carnitine': 'L-카르니틴',
+            'carnitine': 'L-카르니틴',
+            '카르니틴': 'L-카르니틴',
+            
+            'l-arginine': 'L-아르기닌',
+            'arginine': 'L-아르기닌',
+            '아르기닌': 'L-아르기닌',
+            
+            'l-glutamine': 'L-글루타민',
+            'glutamine': 'L-글루타민',
+            '글루타민': 'L-글루타민',
+            
+            'bcaa': 'BCAA',
+            '분지쇄아미노산': 'BCAA',
+            
+            'l-theanine': 'L-테아닌',
+            'theanine': 'L-테아닌',
+            '테아닌': 'L-테아닌',
+            
+            # 관절/뼈 건강
+            'glucosamine': '글루코사민',
+            
+            'chondroitin': '콘드로이틴',
+            '콘드로이친': '콘드로이틴',
+            
+            'msm': 'MSM',
+            '메틸설포닐메탄': 'MSM',
+            
+            'collagen': '콜라겐',
+            '교원단백질': '콜라겐',
+            
+            # 허브/식물 추출물
+            'milk thistle': '밀크씨슬',
+            '실리마린': '밀크씨슬',
+            '엉겅퀴': '밀크씨슬',
+            
+            '인삼': '홍삼',
+            '고려인삼': '홍삼',
+            'ginseng': '홍삼',
+            
+            'ginkgo biloba': '은행잎추출물',
+            '은행잎': '은행잎추출물',
+            
+            'curcumin': '커큐민',
+            '강황': '커큐민',
+            'turmeric': '커큐민',
+            
+            'propolis': '프로폴리스',
+            '벌집추출물': '프로폴리스',
         }
 
         return aliases.get(normalized, normalized)

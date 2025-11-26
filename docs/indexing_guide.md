@@ -1,19 +1,23 @@
 # 데이터 색인 절차 가이드
 
+> 최종 업데이트: 2025-11-26 | 데이터 소스: 식약처 C003 API
+
 ## 📋 색인 절차 개요
 
 ### 현재 색인 프로세스
 
 ```
-1단계: 데이터 수집
+1단계: C003 API 데이터 수집 (건강기능식품 품목제조신고)
    ↓
-2단계: 데이터 전처리
+2단계: 데이터 전처리 및 문서 생성
    ↓
-3단계: ElasticSearch 인덱스 생성
+3단계: ElasticSearch 인덱스 생성/확인
    ↓
-4단계: 문서 벡터화 및 색인
+4단계: 벡터 임베딩 생성 (ko-sroberta-multitask)
    ↓
-5단계: 인덱스 통계 확인
+5단계: Bulk 색인 실행
+   ↓
+6단계: 인덱스 통계 확인
 ```
 
 ---
@@ -44,18 +48,15 @@ python scripts/setup_data.py --api-key YOUR_API_KEY
 python scripts/setup_data.py --api-key YOUR_API_KEY --max-items 1000
 ```
 
-#### 추가 API 데이터 수집
-```bash
-# 기능성 원료, 영업신고, 부작용 정보
-python scripts/collect_additional_data.py --max-items 100
-```
 
 ### 2단계: 데이터 전처리
 
 자동으로 수행됩니다:
-- 제품 정보 + 분류 정보 병합
-- 임베딩 텍스트 생성
-- 필드 정규화
+- C003 API 데이터 파싱
+- 제품 고유 ID 생성 (`{PRDLST_REPORT_NO}_{BSSH_NM}`)
+- 임베딩 텍스트 생성 (제품명, 회사명, 형태, 기능, 원재료 등)
+- Kibana 최적화 필드 추가 (indexed_at, stats, ingredient_count)
+- 필드 정규화 및 검증
 
 ### 3단계: 인덱스 생성
 
@@ -146,111 +147,187 @@ product_id = f"{PRDLST_REPORT_NO}_{BSSH_NM}"
 
 ## 📊 색인 시나리오
 
-### 시나리오 1: 초기 색인
+### 시나리오 1: 초기 색인 (최초 설정)
 
 ```bash
-# 1. 인덱스 생성 및 전체 데이터 색인
+# 전체 데이터 수집 및 색인 (인덱스 재생성)
+python scripts/setup_data.py --api-key YOUR_API_KEY --recreate-index
+
+# 테스트용 (5000개 제한)
 python scripts/setup_data.py --api-key YOUR_API_KEY --recreate-index --max-items 5000
 
+# 특정 범위만 색인
+python scripts/setup_data.py --api-key YOUR_API_KEY --start-index 1 --end-index 10000
+
 # 결과
-# - 인덱스 생성: health_supplements
-# - 색인된 문서: 5000개
+# ✓ 인덱스 생성: health_supplements
+# ✓ C003 데이터 수집 완료
+# ✓ 벡터 임베딩 생성 완료
+# ✓ 색인 완료: 5000개 문서
 ```
 
-### 시나리오 2: 신규 데이터 추가
+### 시나리오 2: 증분 색인 (정기 업데이트)
 
 ```bash
-# 2. 1개월 후 신규 데이터 추가
+# 신규 데이터만 자동으로 색인 (중복 제외)
+python scripts/incremental_index.py --api-key YOUR_API_KEY
+
+# 1000개 제한
 python scripts/incremental_index.py --api-key YOUR_API_KEY --max-items 1000
 
-# 결과
-# - 수집된 데이터: 1000개
-# - 기존 데이터와 중복: 950개
-# - 신규 데이터 색인: 50개
-# - 총 문서 수: 5050개
-```
-
-### 시나리오 3: 추가 API 데이터 통합
-
-```bash
-# 3. 추가 API 데이터 수집
-python scripts/collect_additional_data.py --max-items 100
-
-# 4. 추가 데이터를 기존 인덱스에 병합
-python scripts/merge_additional_data.py
+# 테스트 모드 (실제 색인 안 함)
+python scripts/incremental_index.py --api-key YOUR_API_KEY --max-items 100 --dry-run
 
 # 결과
-# - 기능성 원료 정보 추가
-# - 영업신고 정보 추가
-# - 부작용 정보 추가
+# [3단계] 기존 제품 ID 조회
+# ✓ 기존 제품 ID 4950개 조회 완료
+#
+# [4단계] 신규 문서 필터링
+# ✓ 필터링 완료
+#   - 전체 문서: 1000개
+#   - 중복 문서: 950개
+#   - 신규 문서: 50개
+#
+# [5단계] 신규 문서 벡터화 및 색인
+# ✓ 색인 완료
+#
+# 인덱스 통계:
+#   - 문서 개수: 5,000개
+#   - 신규 추가: 50개
 ```
 
-### 시나리오 4: 전체 재색인
+### 시나리오 3: 저장된 파일로 증분 색인
 
 ```bash
-# 4. 스키마 변경 등으로 전체 재색인 필요 시
+# 이미 수집한 데이터가 있는 경우
+python scripts/incremental_index.py --skip-collect --data-file data/raw/new_products.json
+
+# 결과
+# [1-2단계] 저장된 데이터 로드
+# ✓ 데이터 로드 완료 - 1000개 문서
+# [3단계] 기존 ID 조회 및 중복 제외
+# [5단계] 신규 데이터만 색인
+```
+
+### 시나리오 4: 인덱스 관리
+
+```bash
+# 인덱스 통계 확인
+python scripts/update_index.py stats
+
+# 인덱스 재생성 (데이터 유지)
+python scripts/update_index.py recreate
+
+# 기존 파일로 재색인
+python scripts/update_index.py reindex --data-file data/raw/health_supplements_data.json
+
+# 인덱스 삭제
+python scripts/update_index.py delete
+```
+
+### 시나리오 5: 전체 재색인 (스키마 변경 시)
+
+```bash
+# 스키마 변경 등으로 전체 재색인 필요 시
 python scripts/setup_data.py --api-key YOUR_API_KEY --recreate-index
 
 # 결과
-# - 기존 인덱스 삭제
-# - 새 인덱스 생성
-# - 전체 데이터 재색인
+# ✓ 기존 인덱스 삭제
+# ✓ 새 인덱스 생성 (새 스키마 적용)
+# ✓ 전체 데이터 재색인
 ```
 
 ---
 
-## ⚠️ 주의사항
+## ⚠️ 주의사항 및 권장사항
 
 ### 1. API 키 관리
 ```bash
-# 환경 변수 사용 권장
+# 방법 1: 환경 변수 사용 (권장)
 export FOOD_SAFETY_API_KEY="your_api_key"
 python scripts/incremental_index.py
+
+# 방법 2: .env 파일 사용
+# .env 파일에 추가
+FOOD_SAFETY_API_KEY=your_api_key
+
+# 방법 3: 직접 전달
+python scripts/incremental_index.py --api-key YOUR_API_KEY
 ```
 
 ### 2. 데이터 백업
 ```bash
-# 색인 전 데이터 백업
+# Windows
+xcopy /E /I data\raw data\backup_%date:~0,4%%date:~5,2%%date:~8,2%
+
+# Linux/Mac
 cp -r data/raw data/backup_$(date +%Y%m%d)
+
+# 중요: 재색인 전 반드시 백업!
 ```
 
-### 3. 인덱스 스냅샷
+### 3. 인덱스 스냅샷 (ElasticSearch)
 ```bash
-# ElasticSearch 스냅샷 생성
-curl -X PUT "localhost:9200/_snapshot/my_backup/snapshot_1?wait_for_completion=true"
+# 스냅샷 저장소 등록 (최초 1회)
+curl -X PUT "localhost:9200/_snapshot/my_backup" -H 'Content-Type: application/json' -d'
+{
+  "type": "fs",
+  "settings": {
+    "location": "/usr/share/elasticsearch/backup"
+  }
+}
+'
+
+# 스냅샷 생성
+curl -X PUT "localhost:9200/_snapshot/my_backup/snapshot_$(date +%Y%m%d)?wait_for_completion=true"
+
+# 스냅샷 복원
+curl -X POST "localhost:9200/_snapshot/my_backup/snapshot_20251126/_restore"
 ```
 
-### 4. 색인 성능
-- 배치 크기: 100-500 (기본 100)
-- 대량 데이터: 배치 크기 증가 권장
-- 메모리: 충분한 힙 메모리 확보
+### 4. 색인 성능 최적화
+- **배치 크기**: 100-500 (기본 100)
+  - 소량 데이터: `--batch-size 100`
+  - 대량 데이터: `--batch-size 500`
+  - 메모리 부족 시: `--batch-size 50`
+
+- **API 요청 제한**
+  ```python
+  # app/core/config.py
+  API_BATCH_SIZE = 1000      # API 한 번에 가져올 개수
+  API_REQUEST_DELAY = 0.5    # API 요청 간 대기 시간(초)
+  ```
+
+- **임베딩 배치 크기**: 32 (고정, elasticsearch_manager.py)
+
+- **ElasticSearch 힙 메모리**
+  ```yaml
+  # docker-compose.yml
+  environment:
+    - "ES_JAVA_OPTS=-Xms2g -Xmx2g"  # 최소 2GB 권장
+  ```
 
 ---
 
 ## 🔧 트러블슈팅
 
-### 문제 1: 중복 데이터 발견
-```bash
-# 해결: 중복 제거 스크립트 실행
-python scripts/remove_duplicates.py
-```
-
-### 문제 2: 색인 속도 느림
+### 문제 1: 색인 속도 느림
 ```bash
 # 해결: 배치 크기 증가
 python scripts/incremental_index.py --batch-size 500
 ```
 
-### 문제 3: 메모리 부족
+### 문제 2: 메모리 부족
 ```bash
 # 해결: 작은 배치로 나눠서 색인
 python scripts/incremental_index.py --max-items 1000 --batch-size 50
 ```
 
-### 문제 4: API 요청 제한
-```bash
-# 해결: 요청 간격 증가 (settings.py)
-API_REQUEST_DELAY = 1.0  # 1초
+### 문제 3: API 요청 제한 (429 Too Many Requests)
+```python
+# app/core/config.py 수정
+API_REQUEST_DELAY = 1.0    # 0.5 → 1.0초로 증가
+API_BATCH_SIZE = 500       # 1000 → 500으로 감소
 ```
 
 ---
@@ -295,20 +372,107 @@ curl -X GET "localhost:9200/health_supplements/_search?q=_exists_:embedding_vect
 ## 🚀 빠른 시작
 
 ### 초기 설정 (최초 1회)
+
 ```bash
-# 1. 전체 데이터 색인
+# 1. 환경 변수 설정 (.env 파일)
+FOOD_SAFETY_API_KEY=your_api_key
+ES_HOST=localhost
+ES_PORT=9200
+ES_INDEX_NAME=health_supplements
+
+# 2. ElasticSearch 및 Kibana 시작
+docker-compose up -d elasticsearch kibana
+
+# 3. 연결 확인 (30초 대기 후)
+curl http://localhost:9200
+
+# 4. 전체 데이터 색인 (테스트: 5000개)
 python scripts/setup_data.py --api-key YOUR_API_KEY --recreate-index --max-items 5000
+
+# 5. 인덱스 통계 확인
+python scripts/update_index.py stats
 ```
 
-### 정기 업데이트 (주기적)
+### 정기 업데이트 (주 1회 권장)
+
 ```bash
-# 2. 신규 데이터만 추가
-python scripts/incremental_index.py --api-key YOUR_API_KEY --max-items 1000
+# 신규 데이터만 자동 추가 (중복 자동 제외)
+python scripts/incremental_index.py --api-key YOUR_API_KEY
+
+# 제한된 개수로 테스트
+python scripts/incremental_index.py --api-key YOUR_API_KEY --max-items 1000 --dry-run
 ```
 
-### 추가 데이터 통합 (선택)
+### 재색인 작업 체크리스트
+
+#### ✅ 재색인 전 체크리스트
+
+- [ ] **백업 완료**: 데이터 파일 백업 확인
+- [ ] **인덱스 통계 확인**: 현재 문서 개수 기록
+- [ ] **API 키 확인**: 환경 변수 또는 .env 파일 설정
+- [ ] **ElasticSearch 상태**: `curl http://localhost:9200` 응답 확인
+- [ ] **디스크 공간**: 충분한 저장 공간 확보 (최소 5GB)
+- [ ] **작업 시간**: 사용자 접근이 적은 시간대 선택
+
+#### 🔄 재색인 실행
+
 ```bash
-# 3. 추가 API 데이터 수집 및 병합
-python scripts/collect_additional_data.py --max-items 100
-python scripts/merge_additional_data.py
+# 1. 백업 (중요!)
+xcopy /E /I data\raw data\backup_%date:~0,4%%date:~5,2%%date:~8,2%
+
+# 2. 현재 인덱스 통계 확인 및 기록
+python scripts/update_index.py stats
+
+# 3. 전체 재색인 실행
+python scripts/setup_data.py --api-key YOUR_API_KEY --recreate-index
+
+# 4. 재색인 후 확인
+python scripts/update_index.py stats
+curl http://localhost:9200/health_supplements/_count
+
+# 5. 샘플 데이터 확인
+curl http://localhost:9200/health_supplements/_search?size=3&pretty
 ```
+
+#### ✅ 재색인 후 검증
+
+- [ ] **문서 개수**: 이전과 비슷한 개수인지 확인
+- [ ] **벡터 필드**: `embedding_vector` 필드 존재 확인
+- [ ] **검색 테스트**: API 검색 기능 정상 작동 확인
+- [ ] **Kibana 확인**: 대시보드에서 데이터 표시 확인
+- [ ] **로그 확인**: `logs/app.log`에서 에러 없는지 확인
+
+```bash
+# 검색 테스트
+curl -X POST "http://localhost:8000/api/v1/search" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "비타민", "top_k": 5}'
+
+# 벡터 필드 확인
+curl "http://localhost:9200/health_supplements/_search?q=_exists_:embedding_vector&size=0"
+```
+
+---
+
+## 📝 재색인이 필요한 경우
+
+다음 상황에서 전체 재색인이 필요합니다:
+
+1. **스키마 변경**
+   - 인덱스 매핑 수정
+   - 새로운 필드 추가
+   - 분석기(Analyzer) 변경
+
+2. **임베딩 모델 변경**
+   - 벡터 차원 변경
+   - 다른 임베딩 모델 사용
+
+3. **데이터 품질 개선**
+   - 전처리 로직 개선
+   - 데이터 정규화 규칙 변경
+
+4. **대량 중복 데이터 발견**
+   - 증분 색인으로 해결 안 되는 경우
+
+5. **ElasticSearch 업그레이드**
+   - 메이저 버전 업그레이드 시

@@ -23,5 +23,9 @@ google-genai==1.52.0
 # Validation
 pydantic>=2.5.0
 
+# Logging for Kibana
+python-json-logger>=2.0.7
+CMRESHandler>=1.0.0
+
 # Development & Testing
 pytest>=7.4.3

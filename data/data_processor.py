@@ -6,34 +6,28 @@ from app.utils.logger import get_logger
 logger = get_logger(__name__)
 
 class DataProcessor:
-    """데이터 전처리 클래스"""
+    """C003 API 데이터 전처리 클래스"""
     
     def process_product_data(
         self, 
-        products: List[Dict], 
-        classifications: List[Dict],
+        products: List[Dict],
         kibana_optimized: bool = True
     ) -> List[Dict]:
-        """API 데이터를 ElasticSearch 문서 형식으로 변환
+        """C003 API 데이터를 ElasticSearch 문서 형식으로 변환
         
         Args:
-            products: 제품 데이터 리스트 (C003)
-            classifications: 분류 데이터 리스트 (I2710)
+            products: C003 API 제품 데이터 리스트
             kibana_optimized: Kibana 최적화 필드 추가 여부
         """
         
-        logger.info(f"데이터 전처리 시작 (Kibana 최적화: {kibana_optimized})")
-        
-        # 데이터 맵핑 생성
-        classification_map = {item.get('PRDLST_REPORT_NO'): item for item in classifications}
+        logger.info(f"C003 데이터 전처리 시작 (Kibana 최적화: {kibana_optimized})")
         
         processed = []
         
         for idx, product in enumerate(products):
             try:
                 doc = self._create_document(
-                    product, 
-                    classification_map,
+                    product,
                     kibana_optimized=kibana_optimized
                 )
                 processed.append(doc)
@@ -51,11 +45,10 @@ class DataProcessor:
     
     def _create_document(
         self, 
-        product: Dict, 
-        classification_map: Dict,
+        product: Dict,
         kibana_optimized: bool = True
     ) -> Dict:
-        """개별 문서 생성"""
+        """C003 API 데이터로 개별 문서 생성"""
         
         product_id = product.get('PRDLST_REPORT_NO', '')
         company_name = product.get('BSSH_NM', '')
@@ -68,17 +61,42 @@ class DataProcessor:
             'product_id': unique_id,
             'product_name': product_name,
             'company_name': company_name,
+            
+            # 날짜 정보
             'report_date': product.get('PRMS_DT', ''),
+            'last_update_date': product.get('LAST_UPDT_DTM', ''),
+            'created_date': product.get('CRET_DTM', ''),
+            
+            # 제품 형태 (NEW!)
+            'product_shape': product.get('PRDT_SHAP_CD_NM', ''),
+            
+            # 원재료 및 기능성
             'raw_materials': product.get('RAWMTRL_NM', ''),
             'primary_function': product.get('PRIMARY_FNCLTY', ''),
-            'classification': self._get_classification_info(
-                product_id, 
-                classification_map
-            ),
+            
+            # 섭취 정보
+            'intake_info': {
+                'method': product.get('NTK_MTHD', ''),
+                'caution': product.get('IFTKN_ATNT_MATR_CN', '')
+            },
+            
+            # 제품 상세 정보 (NEW!)
+            'product_details': {
+                'standards': product.get('STDR_STND', ''),
+                'appearance': product.get('DISPOS', ''),
+                'shelf_life': product.get('POG_DAYCNT', ''),
+                'storage_method': product.get('CSTDY_MTHD', '')
+            },
+            
+            # 인허가 정보 (NEW!)
+            'license_info': {
+                'license_no': product.get('LCNS_NO', ''),
+                'report_no': product_id
+            },
+            
+            # 메타데이터
             'metadata': {
-                'manufacturer': product.get('MNFTR_NM', ''),
-                'distribution_company': product.get('DISPOS', ''),
-                'import_declaration': product.get('IMPORT_DECLAR_NO', ''),
+                'source': 'C003_API',
                 'update_date': datetime.now().isoformat()
             }
         }
@@ -94,56 +112,54 @@ class DataProcessor:
                 'popularity_score': 0.0
             }
             
+            # 성분 개수 계산
             raw_materials = doc.get('raw_materials', '')
             if raw_materials:
                 doc['ingredient_count'] = len([x.strip() for x in raw_materials.split(',') if x.strip()])
             else:
                 doc['ingredient_count'] = 0
             
-            doc['metadata']['source'] = 'food_safety_api'
-            doc['metadata']['version'] = '1.0'
+            doc['metadata']['version'] = '2.0'  # C003 전용 버전
         
         # 임베딩용 텍스트 생성
         doc['embedding_text'] = self._create_embedding_text(doc)
         
         return doc
     
-    def _get_classification_info(self, report_no: str, classification_map: Dict) -> Dict:
-        """분류 정보 추출"""
-        
-        if report_no not in classification_map:
-            return {}
-        
-        cls_info = classification_map[report_no]
-        
-        return {
-            'category': cls_info.get('PRDLST_CDNM', ''),
-            'detail_category': cls_info.get('STTEMNT_NO', ''),
-            'function_content': cls_info.get('FNCLTY_CN', ''),
-            'intake_method': cls_info.get('NTK_MTHD', ''),
-            'intake_caution': cls_info.get('IFTKN_ATNT_MATR_CN', '')
-        }
-    
     def _create_embedding_text(self, doc: Dict) -> str:
-        """벡터 임베딩용 통합 텍스트 생성"""
+        """벡터 임베딩용 통합 텍스트 생성 (C003 데이터 기반)"""
         
         parts = []
         
+        # 제품명
         if doc.get('product_name'):
             parts.append(f"제품명: {doc['product_name']}")
         
+        # 회사명
+        if doc.get('company_name'):
+            parts.append(f"회사: {doc['company_name']}")
+        
+        # 제품 형태 (NEW!)
+        if doc.get('product_shape'):
+            parts.append(f"형태: {doc['product_shape']}")
+        
+        # 주요 기능
         if doc.get('primary_function'):
             parts.append(f"주요기능: {doc['primary_function']}")
         
+        # 원재료
         if doc.get('raw_materials'):
             parts.append(f"원재료: {doc['raw_materials']}")
         
-        classification = doc.get('classification', {})
-        if classification.get('function_content'):
-            parts.append(f"기능성내용: {classification['function_content']}")
+        # 외관/성상 (NEW!)
+        product_details = doc.get('product_details', {})
+        if product_details.get('appearance'):
+            parts.append(f"외관: {product_details['appearance']}")
         
-        if classification.get('category'):
-            parts.append(f"분류: {classification['category']}")
+        # 섭취 방법
+        intake_info = doc.get('intake_info', {})
+        if intake_info.get('method'):
+            parts.append(f"섭취방법: {intake_info['method']}")
         
         return " ".join(parts)
     

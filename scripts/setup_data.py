@@ -51,27 +51,22 @@ def main():
         es_manager = ElasticsearchManager()
         processor = DataProcessor()
 
-        # C003 또는 ALL인 경우: 기본 색인 프로세스 (기존 로직)
+        # C003 또는 ALL인 경우: 기본 색인 프로세스
         if args.target_api in ['ALL', 'C003']:
-            logger.info("\n[1단계] 기본 데이터(C003) 수집 및 색인")
-            
+            logger.info("\n[1단계] C003 데이터 수집 및 색인")
+
             # 데이터 수집
-            collected_data = api_client.collect_all_data(
+            products = api_client.collect_all_data(
                 max_items=args.max_items,
-                include_additional=False,
                 start_index=args.start_index,
                 end_index=args.end_index
             )
-            
-            products = collected_data['products']
-            classifications = collected_data['classifications']
-            
-            logger.info(f"✓ 수집 완료 - 제품: {len(products)}, 분류: {len(classifications)}")
+
+            logger.info(f"✓ 수집 완료 - 제품: {len(products)}개")
 
             # 전처리
             processed_data = processor.process_product_data(
-                products, 
-                classifications,
+                products,
                 kibana_optimized=True
             )
             

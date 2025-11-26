@@ -1,0 +1,33 @@
+# 개발 환경용 Dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# 시스템 의존성 설치
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python 의존성 설치
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 개발 도구 추가 설치
+RUN pip install --no-cache-dir \
+    ipython \
+    pytest-watch \
+    black \
+    flake8
+
+# 애플리케이션 코드는 볼륨으로 마운트됨
+# 로그 디렉토리 생성
+RUN mkdir -p logs
+
+# 포트 노출
+EXPOSE 8000
+
+# 개발 서버 실행 (hot reload)
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

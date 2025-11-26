@@ -118,8 +118,7 @@ def main():
     parser.add_argument('--max-items', type=int, default=None, help='수집할 최대 아이템 수')
     parser.add_argument('--batch-size', type=int, default=100, help='색인 배치 크기')
     parser.add_argument('--dry-run', action='store_true', help='실제 색인 없이 테스트만')
-    parser.add_argument('--include-additional', action='store_true', help='추가 API 데이터 포함 (I0030, I2790, I0040)')
-    
+
     args = parser.parse_args()
     
     logger.info("=" * 60)
@@ -140,51 +139,21 @@ def main():
                 return
             
             api_client = FoodSafetyAPIClient(api_key=args.api_key)
-            
-            # 추가 API 데이터 포함 여부
-            if args.include_additional:
-                logger.info("추가 API 데이터 포함: I0030, I2790, I0040")
-                result = api_client.collect_all_data(
-                    max_items=args.max_items,
-                    include_additional=True
-                )
-                products = result['products']
-                classifications = result['classifications']
-                
-                logger.info(f"✓ 수집 완료")
-                logger.info(f"  - 제품: {len(products)}개")
-                logger.info(f"  - 분류: {len(classifications)}개")
-                logger.info(f"  - 기능성 원료: {len(result['ingredients'])}개")
-                logger.info(f"  - 영업신고: {len(result['businesses'])}개")
-                logger.info(f"  - 부작용 정보: {len(result['side_effects'])}개")
-            else:
-                result = api_client.collect_all_data(max_items=args.max_items)
-                products = result['products']
-                classifications = result['classifications']
-                
-                logger.info(f"✓ 수집 완료 - 제품: {len(products)}, 분류: {len(classifications)}")
+
+            # C003 데이터 수집
+            products = api_client.collect_all_data(max_items=args.max_items)
+
+            logger.info(f"✓ 수집 완료 - 제품: {len(products)}개")
             
             # 2단계: 데이터 전처리
             logger.info("\n[2단계] 데이터 전처리")
             logger.info("-" * 60)
-            
+
             processor = DataProcessor()
-            
-            if args.include_additional:
-                processed_data = processor.process_product_data(
-                    products, 
-                    classifications,
-                    ingredients=result.get('ingredients'),
-                    businesses=result.get('businesses'),
-                    side_effects=result.get('side_effects'),
-                    kibana_optimized=True
-                )
-            else:
-                processed_data = processor.process_product_data(
-                    products, 
-                    classifications,
-                    kibana_optimized=True
-                )
+            processed_data = processor.process_product_data(
+                products,
+                kibana_optimized=True
+            )
             
             # 데이터 저장
             os.makedirs(os.path.dirname(args.data_file), exist_ok=True)

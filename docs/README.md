@@ -34,7 +34,7 @@
 | **검색 엔진** | Elasticsearch | 8.x |
 | **임베딩** | Sentence-Transformers | jhgan/ko-sroberta-multitask |
 | **시각화** | Kibana | 8.x |
-| **데이터** | 식품안전나라 API | C003, I2710 |
+| **데이터** | 식품안전나라 API | C003 |
 
 ### 주요 특징
 
@@ -129,11 +129,11 @@ health-supplement-rag/
 │   └── elasticsearch_config.py
 ├── scripts/               # 운영 스크립트
 │   ├── setup_data.py      # 초기 색인
-│   ├── incremental_index.py  # 증분 색인
+│   ├── incremental_index.py  # 증분 색인 (중복 자동 제외)
+│   ├── update_index.py    # 인덱스 관리
 │   ├── update_knowledge_base.py  # FAQ 통합
 │   ├── test_faq_integration.py   # FAQ 테스트
-│   ├── test_timing_api.py        # 복용시간 테스트
-│   └── remove_duplicates.py
+│   └── test_timing_api.py        # 복용시간 테스트
 ├── docs/                  # 문서
 │   ├── README.md          # 이 파일
 │   ├── intelligent_search_guide.md
@@ -356,17 +356,7 @@ python scripts/incremental_index.py --api-key YOUR_KEY --max-items 1000
 # - 신규 색인: 50개
 ```
 
-#### 시나리오 3: 중복 정리
-
-```bash
-# 중복 확인
-python scripts/remove_duplicates.py --dry-run --show-samples
-
-# 중복 제거
-python scripts/remove_duplicates.py
-```
-
-#### 시나리오 4: FAQ 업데이트
+#### 시나리오 3: FAQ 업데이트
 
 ```bash
 # CSV 파일 수정 후
@@ -741,18 +731,7 @@ docker logs elasticsearch
 netstat -an | grep 9200
 ```
 
-### 2. 중복 데이터 발견
-
-**해결**:
-```bash
-# 중복 확인
-python scripts/remove_duplicates.py --dry-run --show-samples
-
-# 중복 제거
-python scripts/remove_duplicates.py
-```
-
-### 3. 색인 속도 느림
+### 2. 색인 속도 느림
 
 **해결**:
 ```bash
@@ -764,7 +743,7 @@ python scripts/incremental_index.py --batch-size 500
 API_REQUEST_DELAY=0.3
 ```
 
-### 4. API 요청 제한
+### 3. API 요청 제한
 
 **해결**:
 ```bash
@@ -773,7 +752,7 @@ API_REQUEST_DELAY=1.0  # 1초로 증가
 API_BATCH_SIZE=50      # 배치 크기 감소
 ```
 
-### 5. Kibana 대시보드 데이터 안 보임
+### 4. Kibana 대시보드 데이터 안 보임
 
 **해결**:
 ```bash
@@ -790,7 +769,7 @@ API_BATCH_SIZE=50      # 배치 크기 감소
 curl http://localhost:9200/health_supplements/_count
 ```
 
-### 6. FAQ 데이터 업데이트 실패
+### 5. FAQ 데이터 업데이트 실패
 
 **해결**:
 ```bash

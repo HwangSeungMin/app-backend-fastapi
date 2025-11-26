@@ -8,7 +8,7 @@ config = settings
 logger = get_logger(__name__)
 
 class FoodSafetyAPIClient:
-    """식약처 API 클라이언트"""
+    """식약처 C003 API 클라이언트 (건강기능식품 품목제조신고)"""
     
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or config.FOOD_SAFETY_API_KEY
@@ -52,41 +52,27 @@ class FoodSafetyAPIClient:
         logger.info(f"C003 데이터 수집: {start_idx}~{end_idx}")
         return self._make_request('C003', start_idx, end_idx)
     
-    def fetch_product_classification(
-        self, 
-        start_idx: int = 1, 
-        end_idx: int = 1000
-    ) -> List[Dict]:
-        """I2710: 건강기능식품 품목분류정보"""
-        logger.info(f"I2710 데이터 수집: {start_idx}~{end_idx}")
-        return self._make_request('I2710', start_idx, end_idx)
-    
     def collect_all_data(
         self,
         batch_size: Optional[int] = None,
         max_items: Optional[int] = None,
-        include_additional: bool = False,
         start_index: int = 1,
         end_index: Optional[int] = None
-    ) -> Dict[str, List[Dict]]:
-        """전체 데이터 수집
+    ) -> List[Dict]:
+        """C003 API 데이터 수집 (건강기능식품 품목제조신고)
 
         Args:
             batch_size: API 한 번 요청할 때 가져올 데이터 개수
             max_items: 수집할 최대 아이템 수 (None이면 전체 수집)
-            include_additional: (Deprecated) 추가 API 데이터 포함 여부
             start_index: 수집 시작 인덱스 (기본값: 1)
             end_index: 수집 종료 인덱스 (None이면 끝까지 또는 max_items까지)
         
         Returns:
-            Dict with keys: products, classifications
+            List[Dict]: C003 API 제품 데이터 리스트
         """
         batch_size = batch_size or config.API_BATCH_SIZE
 
-        result = {
-            'products': [],
-            'classifications': []
-        }
+        products = []
 
         # C003 데이터 수집
         logger.info(f"=== C003 데이터 수집 시작 (범위: {start_index} ~ {end_index if end_index else '끝'}) ===")
@@ -101,7 +87,7 @@ class FoodSafetyAPIClient:
                 logger.info(f"종료 인덱스({end_index})에 도달하여 수집 중단")
                 break
 
-            if max_items and len(result['products']) >= max_items:
+            if max_items and len(products) >= max_items:
                 logger.info(f"최대 아이템 수({max_items})에 도달하여 수집 중단")
                 break
 
@@ -113,61 +99,27 @@ class FoodSafetyAPIClient:
                 current_batch_size = batch_size
             
             if max_items:
-                remaining_items = max_items - len(result['products'])
+                remaining_items = max_items - len(products)
                 current_batch_size = min(current_batch_size, remaining_items)
 
             if current_batch_size <= 0:
                 break
 
-            products = self.fetch_health_functional_food(
+            batch_products = self.fetch_health_functional_food(
                 current_idx,
                 current_idx + current_batch_size - 1
             )
 
-            if not products:
+            if not batch_products:
+                logger.info("더 이상 데이터가 없습니다.")
                 break
 
-            result['products'].extend(products)
-            logger.info(f"누적 제품 수: {len(result['products'])}")
+            products.extend(batch_products)
+            logger.info(f"누적 제품 수: {len(products)}")
 
             current_idx += current_batch_size
             time.sleep(config.API_REQUEST_DELAY)
 
-        # I2710 데이터 수집
-        logger.info("=== I2710 데이터 수집 시작 ===")
-        current_idx = start_index
+        logger.info(f"✓ C003 데이터 수집 완료: {len(products)}개")
 
-        while True:
-            if end_index and current_idx > end_index:
-                break
-                
-            if max_items and len(result['classifications']) >= max_items:
-                break
-
-            if end_index:
-                remaining_range = end_index - current_idx + 1
-                current_batch_size = min(batch_size, remaining_range)
-            else:
-                current_batch_size = batch_size
-                
-            if max_items:
-                remaining = max_items - len(result['classifications'])
-                current_batch_size = min(current_batch_size, remaining)
-
-            classifications = self.fetch_product_classification(
-                current_idx,
-                current_idx + current_batch_size - 1
-            )
-
-            if not classifications:
-                break
-
-            result['classifications'].extend(classifications)
-            logger.info(f"누적 분류정보 수: {len(result['classifications'])}")
-
-            current_idx += current_batch_size
-            time.sleep(config.API_REQUEST_DELAY)
-
-        logger.info(f"데이터 수집 완료 - 제품: {len(result['products'])}, 분류: {len(result['classifications'])}")
-
-        return result
+        return products
