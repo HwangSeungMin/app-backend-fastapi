@@ -1,0 +1,87 @@
+# docker-compose.yml
+# 여러 Docker 컨테이너를 한 번에 관리하기 위한 설정 파일입니다.
+# 이 파일로 FastAPI 서버와 PostgreSQL 데이터베이스를 동시에 실행할 수 있습니다.
+
+version: '3.8' # Docker Compose 파일 버전
+
+services:
+  # ============================================
+  # 1. 데이터베이스 서비스 (PostgreSQL)
+  # ============================================
+  db:
+    # PostgreSQL 공식 이미지 사용 (버전 15)
+    image: postgres:15
+
+    # 컨테이너 이름을 명시적으로 설정
+    container_name: app-postgres-db
+
+    # 환경 변수 설정
+    environment:
+      # PostgreSQL 기본 데이터베이스 이름
+      POSTGRES_DB: app_db
+      # PostgreSQL 사용자 이름
+      POSTGRES_USER: postgres
+      # PostgreSQL 비밀번호
+      POSTGRES_PASSWORD: postgres
+
+    # 포트 매핑: 호스트:컨테이너
+    # 로컬 컴퓨터의 5432 포트를 컨테이너의 5432 포트에 연결
+    ports:
+      - "5432:5432"
+
+    # 볼륨 설정: 데이터 영속성을 위해 사용
+    # 컨테이너를 삭제해도 데이터베이스 데이터가 유지됩니다
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    # 헬스체크: 데이터베이스가 정상적으로 실행 중인지 확인
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # 2. 웹 서버 서비스 (FastAPI)
+  # ============================================
+  web:
+    # 현재 디렉토리의 Dockerfile을 사용하여 이미지를 빌드
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # 컨테이너 이름 설정
+    container_name: app-fastapi-server
+
+    # 포트 매핑: 로컬의 8000 포트를 컨테이너의 8000 포트에 연결
+    # 브라우저에서 http://localhost:8000 으로 접속 가능
+    ports:
+      - "8000:8000"
+
+    # 볼륨 설정: 로컬 코드를 컨테이너에 마운트
+    # 코드를 수정하면 즉시 컨테이너에 반영됩니다 (--reload 옵션과 함께 사용)
+    volumes:
+      - ./app:/app
+
+    # 환경 변수 파일 지정
+    # .env 파일의 내용을 환경 변수로 사용합니다
+    env_file:
+      - .env
+
+    # 의존성 설정: db 서비스가 먼저 시작된 후에 web 서비스를 시작
+    depends_on:
+      db:
+        condition: service_healthy # db가 healthy 상태가 되면 web 시작
+
+    # 컨테이너가 중지되면 자동으로 재시작
+    # 개발 중 에러로 서버가 중단되어도 자동으로 다시 시작됩니다
+    restart: unless-stopped
+
+# ============================================
+# 볼륨 정의
+# ============================================
+# Docker가 관리하는 영구 저장소입니다
+volumes:
+  postgres_data:
+    # PostgreSQL 데이터를 저장하는 볼륨
+    # 컨테이너를 삭제해도 이 볼륨은 남아있어 데이터가 보존됩니다
