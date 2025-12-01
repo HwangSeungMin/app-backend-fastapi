@@ -234,3 +234,49 @@ python scripts/incremental_index.py --api-key YOUR_API_KEY --max-items 1000
 ```bash
 python scripts/remove_duplicates.py
 ```
+
+---
+
+## 📊 Kibana 대시보드 관리
+
+### 5. 대시보드 설정 (setup_kibana_dashboard.py)
+Kibana 대시보드와 시각화를 자동으로 생성합니다.
+
+```bash
+# 기본 사용 (Kibana가 실행 중이어야 함)
+python scripts/setup_kibana_dashboard.py
+```
+
+**생성되는 시각화:**
+- 전체 제품 수 (Metric)
+- 제조사별 제품 수 TOP 20 (Horizontal Bar)
+- 제품 형태별 분포 (Pie Chart)
+- 원재료 수 분포 (Histogram)
+- 월별 제품 등록 추이 (Line Chart)
+- 최근 등록 제품 (Saved Search)
+
+### 6. 대시보드 백업/복원 (backup_kibana_dashboard.py) ⭐ 신규
+현재 구성된 대시보드를 백업하거나 복원합니다.
+
+```bash
+# 대시보드 백업 (NDJSON 파일로 저장)
+python scripts/backup_kibana_dashboard.py
+
+# 또는 명시적으로
+python scripts/backup_kibana_dashboard.py export
+
+# 백업 파일 목록 확인
+python scripts/backup_kibana_dashboard.py list
+
+# 백업 파일에서 복원
+python scripts/backup_kibana_dashboard.py import backups/kibana/kibana_dashboard_20251201_183000.ndjson
+```
+
+**백업 파일 위치:**
+- `backups/kibana/kibana_dashboard_YYYYMMDD_HHMMSS.ndjson`
+
+**백업 내용:**
+- 인덱스 패턴
+- 모든 시각화
+- 대시보드 레이아웃
+- 저장된 검색
