@@ -1,5 +1,5 @@
 """
-Google Gemini LLM 서비스 (google-genai SDK 사용)
+Google Gemini LLM 서비스 (google-generativeai SDK 사용)
 
 RAG 검색 결과와 SERP 결과를 Gemini로 융합하여 최종 추천을 생성합니다.
 """
@@ -7,7 +7,7 @@ from typing import List, Dict, Optional, Any
 import asyncio
 import re
 import os
-from google.genai import Client
+import google.generativeai as genai
 from app.core.config import settings
 from app.utils.logger import get_logger
 
@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 
 
 class GeminiService:
-    """Google Gemini LLM 서비스 (새로운 google-genai SDK)"""
+    """Google Gemini LLM 서비스 (google-generativeai SDK)"""
     
     def __init__(self):
         self.api_key = settings.GEMINI_API_KEY
@@ -25,12 +25,14 @@ class GeminiService:
         
         # Gemini 클라이언트 초기화
         if self.api_key:
-            # API 키로 클라이언트 초기화
-            self.client = Client(api_key=self.api_key)
+            # API 키 설정
+            genai.configure(api_key=self.api_key)
+            self.model = genai.GenerativeModel(self.model_name)
             logger.info(f"Gemini 클라이언트 초기화 완료: {self.model_name}")
         else:
-            self.client = None
+            self.model = None
             logger.warning("Gemini API 키가 설정되지 않았습니다.")
+
     
     async def generate_recommendation(
         self,
@@ -57,7 +59,7 @@ class GeminiService:
         Returns:
             추천 결과 딕셔너리
         """
-        if not self.client:
+        if not self.model:
             raise ValueError("Gemini API 키가 설정되지 않았습니다.")
         
         try:
@@ -232,49 +234,45 @@ class GeminiService:
         return "\n".join(requirements)
     
     async def _call_gemini(self, prompt: str) -> str:
-        """Gemini API 호출 (새로운 google-genai SDK)"""
+        """Gemini API 호출 (google-generativeai SDK)"""
         try:
             logger.info(f"Gemini API 호출: model={self.model_name}")
             
             # 비동기 실행
             def _sync_generate():
                 logger.debug(f"프롬프트 길이: {len(prompt)}자")
-                response = self.client.models.generate_content(
-                    model=self.model_name,
-                    contents=prompt,
-                    config={
-                        'temperature': self.temperature,
-                        'max_output_tokens': self.max_output_tokens
-                    }
+                
+                # generation_config 설정
+                generation_config = genai.types.GenerationConfig(
+                    temperature=self.temperature,
+                    max_output_tokens=self.max_output_tokens
+                )
+                
+                # Gemini API 호출
+                response = self.model.generate_content(
+                    prompt,
+                    generation_config=generation_config
                 )
                 
                 logger.info(f"응답 객체 타입: {type(response)}")
                 
-                # 1. response.text 속성 시도 (가장 일반적)
-                try:
-                    if hasattr(response, 'text') and response.text:
-                        logger.info("response.text에서 텍스트 추출 성공")
-                        return response.text
-                except Exception as e:
-                    logger.debug(f"response.text 접근 실패: {e}")
-
-                # 2. candidates 구조 순회
+                # response.text로 텍스트 추출
+                if hasattr(response, 'text') and response.text:
+                    logger.info("response.text에서 텍스트 추출 성공")
+                    return response.text
+                
+                # candidates 구조 확인
                 if hasattr(response, 'candidates') and response.candidates:
                     for i, candidate in enumerate(response.candidates):
                         logger.debug(f"Candidate {i} 확인 중")
                         if hasattr(candidate, 'content') and candidate.content:
-                            # parts 확인
                             if hasattr(candidate.content, 'parts') and candidate.content.parts:
                                 for part in candidate.content.parts:
                                     if hasattr(part, 'text') and part.text:
                                         logger.info("candidate.content.parts에서 텍스트 추출 성공")
                                         return part.text
-                            # content.text 확인
-                            if hasattr(candidate.content, 'text') and candidate.content.text:
-                                logger.info("candidate.content.text에서 텍스트 추출 성공")
-                                return candidate.content.text
                 
-                # 3. 최후의 수단: 문자열 변환
+                # 최후의 수단
                 logger.warning(f"텍스트 추출 실패. 응답 객체 구조: {dir(response)}")
                 return str(response)
             

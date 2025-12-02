@@ -1,54 +1,18 @@
-## 🚀 빠른 시작
-
-
-```bash
-# 1. 설치
-cd d:/yakkobak_be
-
-git clone <repository-url>
-
-python --version # 3.9 이상 
-
-python -m venv venv # 가상환경 생성
-
-# 가상환경 접속 
-venv\Scripts\activate #Windows 
-source venv/bin/activate  #Linux/Mac 
-
-python.exe -m pip install --upgrade pip
-
-pip install -r requirements.txt
-
-# 2. 환경 설정
-cp .env.example .env
-# .env 파일에서 API 키 설정
-
-## 기본 요구 조건 : Docker Desktop 설치 및 실행 
-
-# 3. Elasticsearch & Kibana 시작
-docker-compose up -d
-
-# 4. 데이터 색인
-python scripts/setup_data.py --api-key YOUR_KEY --max-items 5000
-
-# 5. 서버 시작
-uvicorn api.app:app --reload --host 0.0.0.0 --port 8000
-```
-# 의약품 관리 앱 백엔드 (FastAPI)
-
-> **계획 변경**: 데이터베이스를 사용하지 않습니다. 플러터 앱에서 로컬 DB로 알람 정보를 관리합니다.
+# 약꼬박 (Yakkobak) - 의약품 관리 앱 백엔드
 
 팀 프로젝트로 개발하는 의약품 관리 모바일 앱의 백엔드 API 서버입니다.
 
 ## 📋 프로젝트 개요
 
-약봉투 사진(OCR) 또는 음성(STT)을 통해 약 정보를 추출하여 플러터 앱으로 전달하는 Stateless API 서버입니다.
+약봉투 사진(OCR) 또는 음성(STT)을 통해 약 정보를 추출하고, RAG 기반 건강기능식품 추천 서비스를 제공하는 FastAPI 백엔드 서버입니다.
 
 ### 주요 기능
 
 - **OCR (광학 문자 인식)**: 약봉투 사진에서 텍스트 추출 및 약 정보 파싱
-- **STT (음성-텍스트 변환)**: 음성으로 약 정보 입력 가능
-- **약 정보 파싱**: 복용 시간, 횟수, 약 종류 등 추출 및 반환
+- **STT (음성-텍스트 변환)**: 음성으로 약 정보 입력 및 의약품 복용 정보 추출
+- **RAG 검색**: Elasticsearch 기반 건강기능식품 검색 및 추천
+- **Gemini LLM**: Google Gemini를 활용한 지능형 추천
+- **Kibana 대시보드**: 검색 로그 및 분석 시각화
 
 ### 아키텍처
 
@@ -56,83 +20,99 @@ uvicorn api.app:app --reload --host 0.0.0.0 --port 8000
 ┌─────────────┐      HTTP Request     ┌──────────────────┐
 │             │ ──────────────────────> │                  │
 │  Flutter    │   (이미지/음성 파일)   │  FastAPI Server  │
-│  App        │                         │                  │
-│  (로컬 DB)  │ <────────────────────── │ (Stateless)      │
-└─────────────┘   JSON Response (파싱된 약 정보) └──────────────────┘
-                                                │
-                                                │ API Call
-                                                ▼
-                                        ┌───────────────┐
-                                        │ Azure         │
-                                        │ - OCR         │
-                                        │ - STT         │
-                                        └───────────────┘
+│  App        │                         │  + Elasticsearch │
+│  (로컬 DB)  │ <────────────────────── │  + Kibana        │
+└─────────────┘   JSON Response        └──────────────────┘
+                                                 │
+                                                 │ API Call
+                                                 ▼
+                                         ┌───────────────┐
+                                         │ External APIs │
+                                         │ - Azure OCR   │
+                                         │ - Azure STT   │
+                                         │ - Azure OpenAI│
+                                         │ - Google Gemini│
+                                         └───────────────┘
 ```
 
 ## 🛠️ 기술 스택
 
-- **웹 프레임워크**: FastAPI
+- **웹 프레임워크**: FastAPI 0.104+
+- **검색 엔진**: Elasticsearch 8.11.0 (Nori 플러그인)
+- **시각화**: Kibana 8.11.0
+- **ML/임베딩**: Sentence Transformers, PyTorch
+- **LLM**: Google Gemini, Azure OpenAI
 - **컨테이너**: Docker, Docker Compose
-- **외부 서비스**: Azure Computer Vision (OCR), Azure Speech Service (STT)
-- **배포**: Azure Container Registry, Azure App Service
+- **외부 서비스**: 
+  - Azure Computer Vision (OCR)
+  - Azure Speech Service (STT)
+  - Azure OpenAI (GPT-4)
+  - Google Gemini API
 
 ## 📂 프로젝트 구조
 
 ```
 app-backend-fastapi/
 ├── app/
-│   ├── main.py              # FastAPI 애플리케이션 진입점
-│   ├── requirements.txt     # Python 의존성
-│   │
-│   ├── api/                 # API 라우터
-│   │   └── v1/              # API 버전 1
-│   │       ├── ocr.py       # OCR 엔드포인트 (예정)
-│   │       └── stt.py       # STT 엔드포인트 (예정)
-│   │
-│   ├── core/                # 핵심 설정
-│   │   └── config.py        # 환경 변수 관리
-│   │
-│   └── services/            # 비즈니스 로직 (예정)
-│       ├── ocr_service.py   # Azure OCR 연동
-│       ├── stt_service.py   # Azure STT 연동
-│       └── parser.py        # 텍스트 파싱 로직
-│
-├── .env                     # 환경 변수 (직접 생성 필요)
-├── .env.example             # 환경 변수 예시
-├── .gitignore
-├── Dockerfile
-├── docker-compose.yml
+│   ├── main.py                 # FastAPI 애플리케이션 진입점
+│   ├── api/                    # API 라우터
+│   │   └── v1/
+│   │       ├── endpoints/      # API 엔드포인트
+│   │       │   ├── ocr/        # OCR API
+│   │       │   ├── stt/        # STT API
+│   │       │   ├── rag/        # RAG 검색 API
+│   │       │   └── chatbot/    # 챗봇 API
+│   │       └── api.py          # 라우터 통합
+│   ├── core/                   # 핵심 설정
+│   │   ├── config.py           # 환경 변수 관리
+│   │   └── elasticsearch_config.py
+│   ├── services/               # 비즈니스 로직
+│   │   ├── ocr/                # OCR 서비스
+│   │   ├── stt/                # STT 서비스
+│   │   └── rag/                # RAG 서비스
+│   ├── search/                 # 검색 엔진
+│   │   ├── embeddings.py       # 임베딩 생성
+│   │   ├── rag_search.py       # RAG 검색
+│   │   └── smart_router.py     # 지능형 라우팅
+│   ├── schemas/                # Pydantic 스키마
+│   └── utils/                  # 유틸리티
+├── scripts/                    # 데이터 처리 스크립트
+├── data/                       # 데이터 파일
+├── logs/                       # 로그 파일
+├── requirements.txt            # Python 의존성
+├── .env                        # 환경 변수 (직접 생성 필요)
+├── .env.example                # 환경 변수 예시
+├── Dockerfile                  # API 서버 이미지
+├── docker-compose.yml          # Docker Compose 설정
 └── README.md
 ```
 
-## 🚀 시작하기
+## 🚀 빠른 시작
 
 ### 사전 요구사항
 
-- **Docker Desktop** 설치 필요
+- **Docker Desktop** 설치 및 실행
   - [Windows용 Docker Desktop 다운로드](https://www.docker.com/products/docker-desktop/)
-  - 설치 후 Docker Desktop을 실행해주세요
-- **Git** (이미 설치되어 있을 것입니다)
+- **Git**
+- **Python 3.12** (로컬 개발 시)
 
 ### 1. 저장소 클론
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/ShootingStar-5/app-backend-fastapi.git
 cd app-backend-fastapi
+
+# develop 브랜치로 전환
+git checkout develop
 ```
 
-### 2. 환경 변수 파일 생성
+### 2. 환경 변수 설정
 
-`.env.example` 파일을 복사하여 `.env` 파일을 만들어주세요.
+`.env.example` 파일을 복사하여 `.env` 파일을 생성합니다.
 
 **Windows (PowerShell)**:
 ```powershell
 Copy-Item .env.example .env
-```
-
-**Windows (명령 프롬프트)**:
-```cmd
-copy .env.example .env
 ```
 
 **Mac/Linux**:
@@ -140,120 +120,167 @@ copy .env.example .env
 cp .env.example .env
 ```
 
-그 다음, `.env` 파일을 열어서 Azure 키를 설정해주세요:
+`.env` 파일을 열어서 필요한 API 키를 설정합니다:
 
 ```env
-# 애플리케이션 환경 (개발 환경)
-APP_ENV=dev
+# Azure Speech Service (STT)
+AZURE_SPEECH_KEY=your_azure_speech_key
+AZURE_SPEECH_REGION=westus3
 
-# Azure OCR/STT 키 (Azure Portal에서 생성 후 입력)
-AZURE_OCR_KEY=YOUR_OCR_KEY_HERE
-AZURE_OCR_ENDPOINT=YOUR_OCR_ENDPOINT_HERE
-AZURE_TTS_KEY=YOUR_TTS_KEY_HERE
-AZURE_TTS_ENDPOINT=YOUR_TTS_ENDPOINT_HERE
+# Azure OpenAI (LLM)
+AZURE_OPENAI_KEY=your_azure_openai_key
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT=gpt-4o
+
+# Google Gemini LLM
+GEMINI_API_KEY=your_gemini_api_key
+
+# Elasticsearch
+ELASTICSEARCH_URL=http://elasticsearch:9200
+ES_HOST=elasticsearch
+ES_PORT=9200
 ```
 
-> **참고**: Azure 키는 나중에 OCR/STT 기능을 구현할 때 입력하면 됩니다.
-
-### 3. Docker로 서버 실행
+### 3. Docker로 서비스 실행
 
 ```bash
-docker-compose up --build
+# 모든 서비스 시작 (API, Elasticsearch, Kibana)
+docker-compose up -d
+
+# 로그 확인
+docker-compose logs -f
+
+# 특정 서비스 로그만 확인
+docker-compose logs -f api
 ```
 
-**명령어 설명**:
-- `docker-compose up`: 서비스를 시작합니다
-- `--build`: Docker 이미지를 새로 빌드합니다
+**실행되는 서비스**:
+- `yakkobak-api`: FastAPI 서버 (포트 8000)
+- `yakkobak-es`: Elasticsearch (포트 9200, 9300)
+- `yakkobak-kibana`: Kibana (포트 5601)
 
-**실행 결과**:
-```
-✔ Container app-fastapi-server started
-```
+### 4. 서비스 확인
 
-서버가 정상적으로 시작되면:
-```
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000
-```
+브라우저에서 다음 URL로 접속:
 
-### 4. API 문서 확인
+- **API 문서 (Swagger)**: http://localhost:8000/docs
+- **API 문서 (ReDoc)**: http://localhost:8000/redoc
+- **Elasticsearch**: http://localhost:9200
+- **Kibana**: http://localhost:5601
 
-브라우저에서 다음 URL로 접속하면 자동 생성된 API 문서를 볼 수 있습니다:
-
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-
-### 5. 서버 종료
-
-터미널에서 **Ctrl + C**를 누르면 서버가 종료됩니다.
-
-컨테이너를 완전히 정리하려면:
+헬스체크:
 ```bash
+# API 헬스체크
+curl http://localhost:8000/api/v1/health
+
+# Elasticsearch 상태
+curl http://localhost:9200/_cluster/health
+```
+
+### 5. 서비스 중지
+
+```bash
+# 서비스 중지 (데이터 보존)
+docker-compose stop
+
+# 서비스 중지 및 컨테이너 제거 (데이터 보존)
 docker-compose down
+
+# 서비스 중지 및 볼륨까지 삭제 (데이터 삭제)
+docker-compose down -v
 ```
 
-## 🔧 개발 모드
+## 🔧 로컬 개발 환경 (선택사항)
 
-### 코드 수정 시 자동 리로드
+Docker 없이 로컬에서 개발하려면:
 
-`docker-compose.yml`에서 볼륨 마운트와 `--reload` 옵션이 설정되어 있어, 코드를 수정하면 자동으로 서버가 재시작됩니다.
-
-### 로컬에서 Python으로 직접 실행 (선택사항)
-
-Docker 없이 로컬 환경에서 실행하려면:
-
-1. **가상환경 생성**:
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate  # Windows
-   # source .venv/bin/activate  # Mac/Linux
-   ```
-
-2. **패키지 설치**:
-   ```bash
-   pip install -r app/requirements.txt
-   ```
-
-3. **서버 실행**:
-   ```bash
-   cd app
-   uvicorn main:app --reload
-   ```
-
-## 📝 API 사용 예시
-
-### 헬스 체크
+### 1. 가상환경 생성 및 활성화
 
 ```bash
-curl http://localhost:8000/
+# 가상환경 생성
+python -m venv venv
+
+# 가상환경 활성화
+# Windows
+venv\Scripts\activate
+
+# Mac/Linux
+source venv/bin/activate
 ```
 
-**응답**:
-```json
-{
-  "message": "Medicine Management API",
-  "status": "running"
-}
-```
-
-### OCR API (예정)
+### 2. 패키지 설치
 
 ```bash
-curl -X POST "http://localhost:8000/api/v1/ocr/extract" \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@medicine_image.jpg"
+# pip 업그레이드
+python -m pip install --upgrade pip
+
+# 의존성 설치
+pip install -r requirements.txt
 ```
 
-**예상 응답**:
-```json
-{
-  "extracted_text": "하루 3회, 식후 30분",
-  "parsed_info": {
-    "frequency": 3,
-    "timing": "식후",
-    "timing_minutes": 30
-  }
-}
+### 3. Elasticsearch 실행
+
+```bash
+# Docker로 Elasticsearch만 실행
+docker-compose up -d elasticsearch kibana
+```
+
+### 4. 서버 실행
+
+```bash
+# 개발 서버 실행 (자동 리로드)
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+## 📝 API 엔드포인트
+
+### 헬스체크
+```bash
+GET /
+GET /api/v1/health
+```
+
+### STT API
+```bash
+# 음성 → 텍스트 변환
+POST /api/v1/stt/transcribe
+
+# 음성 → 의약품 정보 추출
+POST /api/v1/stt/extract
+
+# 텍스트 → 의약품 정보 추출
+POST /api/v1/stt/extract-text
+```
+
+### RAG 검색 API
+```bash
+# 건강기능식품 검색
+POST /api/v1/rag/search
+
+# 지능형 추천
+POST /api/v1/rag/recommend
+```
+
+### OCR API
+```bash
+# 이미지 → 텍스트 추출
+POST /api/v1/ocr/extract
+```
+
+자세한 API 사용법은 http://localhost:8000/docs 에서 확인하세요.
+
+## 🐳 Docker 이미지 정보
+
+### Elasticsearch 이미지
+- **이미지**: `albob1403/yakkobak-elasticsearch:latest`
+- **포함 내용**:
+  - Elasticsearch 8.11.0
+  - Nori 한글 분석 플러그인
+  - 사전 색인된 건강기능식품 데이터
+
+Docker Hub에서 자동으로 다운로드됩니다. 수동으로 받으려면:
+```bash
+docker pull albob1403/yakkobak-elasticsearch:latest
 ```
 
 ## 🤝 팀 협업 가이드
@@ -290,6 +317,7 @@ curl -X POST "http://localhost:8000/api/v1/ocr/extract" \
 - `docs:` 문서 수정
 - `refactor:` 코드 리팩토링
 - `chore:` 빌드, 설정 파일 수정
+- `test:` 테스트 코드 추가/수정
 
 ## 🐛 트러블슈팅
 
@@ -297,35 +325,39 @@ curl -X POST "http://localhost:8000/api/v1/ocr/extract" \
 
 1. Docker Desktop이 실행 중인지 확인
 2. Windows의 경우 WSL2가 설치되어 있는지 확인
+3. Docker Desktop 재시작
 
-### 포트가 이미 사용 중일 때
+### 포트 충돌
 
-다른 프로그램이 8000 포트를 사용 중일 수 있습니다.
-
-**해결 방법**: `docker-compose.yml`에서 포트를 변경
+다른 프로그램이 포트를 사용 중이면 `docker-compose.yml`에서 포트 변경:
 ```yaml
 ports:
-  - "8080:8000"  # 로컬 포트를 8080으로 변경
+  - "8001:8000"  # 8000 대신 8001 사용
 ```
 
-## 📚 다음 단계
+### Elasticsearch 메모리 부족
 
-### 구현 예정 기능
+`docker-compose.yml`에서 메모리 설정 조정:
+```yaml
+environment:
+  - "ES_JAVA_OPTS=-Xms256m -Xmx256m"  # 512m에서 256m으로 감소
+```
 
-1. **OCR API 구현**
-   - Azure Computer Vision 연동
-   - 이미지 업로드 엔드포인트
-   - 텍스트 추출 및 파싱
+### 코드 변경이 반영되지 않을 때
 
-2. **STT API 구현**
-   - Azure Speech Service 연동
-   - 음성 파일 업로드 엔드포인트
-   - 텍스트 변환 및 파싱
+```bash
+# API 컨테이너 재시작
+docker-compose restart api
 
-3. **Azure 배포**
-   - Container Registry 설정
-   - App Service 또는 Container Instances 배포
-   - GitHub Actions CI/CD 설정
+# 또는 전체 재빌드
+docker-compose up -d --build
+```
+
+## 📚 추가 문서
+
+- [Docker 설정 가이드](DOCKER_SETUP.md)
+- [RAG 시스템 설명](README_RAG.md)
+- [Azure 배포 가이드](AZURE_DEPLOYMENT.md)
 
 ## 📧 문의
 

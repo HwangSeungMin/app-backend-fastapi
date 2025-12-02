@@ -1,38 +1,69 @@
+# ============================================
 # Core Web Framework
+# ============================================
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
+
+# ============================================
+# Environment & Configuration
+# ============================================
 python-dotenv>=1.0.0
-python-multipart>=0.0.9
+pydantic>=2.5.0
+pydantic-settings    # Pydantic v2에서 Settings 클래스 사용
 
-# Azure Speech Service (STT)
-azure-cognitiveservices-speech==1.40.0
+# ============================================
+# HTTP Client
+# ============================================
+httpx                # 비동기 HTTP 클라이언트 (Azure API 호출용)
+requests>=2.31.0
 
+# ============================================
+# Azure Services SDK
+# ============================================
+azure-cognitiveservices-vision-computervision  # Azure Computer Vision (OCR)
+azure-ai-formrecognizer                        # Azure Form Recognizer (고급 OCR)
+azure-cognitiveservices-speech==1.40.0         # Azure Speech Service (STT)
+
+# ============================================
 # Azure OpenAI (LLM)
+# ============================================
 openai>=1.0.0
 
+# ============================================
 # ElasticSearch
+# ============================================
 elasticsearch==8.11.0
 
+# ============================================
 # ML & Embeddings
+# ============================================
 sentence-transformers>=2.2.2
 torch==2.6.0
 
+# ============================================
 # Data Processing
-requests>=2.31.0
+# ============================================
 numpy>=1.24.3,<2.0.0
 
-# Google SERP API
-google-search-results>=2.4.2
+# ============================================
+# File Processing
+# ============================================
+python-multipart>=0.0.9     # 파일 업로드 처리 (FastAPI multipart/form-data)
+pillow                      # 이미지 처리 라이브러리
 
-# Google Gemini LLM
-google-genai==1.52.0
+# ============================================
+# Google Services
+# ============================================
+google-search-results>=2.4.2  # Google SERP API (serpapi 패키지)
+google-generativeai>=0.8.0     # Google Gemini LLM (google.genai)
 
-# Validation
-pydantic>=2.5.0
-
+# ============================================
 # Logging for Kibana
-python-json-logger>=2.0.7
+# ============================================
+python-json-logger>=2.0.7  # pythonjsonlogger로도 import됨
 CMRESHandler>=1.0.0
 
+# ============================================
 # Development & Testing
+# ============================================
 pytest>=7.4.3
