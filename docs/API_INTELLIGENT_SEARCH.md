@@ -2,11 +2,11 @@
 
 ## 📋 개요
 
-**엔드포인트**: `POST /api/v1/rag/search/intelligent`
+**엔드포인트**: `POST /api/v1/search/intelligent`
 
 **목적**: 사용자 쿼리를 지능적으로 분석하여 최적의 검색 결과를 제공하는 고급 검색 API
 
-**위치**: [`app/api/v1/endpoints/rag/routes.py`](file:///d:/yakkobak_be/app/api/v1/endpoints/rag/routes.py#L221-L334)
+**위치**: [`app/api/v1/endpoints/rag/routes.py`](project-folder/app-backend-fastapi/app/api/v1/endpoints/rag/routes.py#L221-L334)
 
 ## 🎯 핵심 기능
 
@@ -49,7 +49,7 @@
 ### 예시 요청
 
 ```bash
-curl -X POST "http://localhost:8000/api/v1/rag/search/intelligent" \
+curl -X POST "http://localhost:8000/api/v1/search/intelligent" \
   -H "Content-Type: application/json" \
   -d '{
     "query": "눈이 피로해요",
@@ -107,7 +107,7 @@ curl -X POST "http://localhost:8000/api/v1/rag/search/intelligent" \
 
 ### 1️⃣ 쿼리 분석기 (QueryAnalyzer)
 
-**파일**: [`app/search/query_analyzer.py`](file:///d:/yakkobak_be/app/search/query_analyzer.py)
+**파일**: [`app/search/query_analyzer.py`](project-folder/app-backend-fastapi/app/search/query_analyzer.py)
 
 #### 기능
 
@@ -157,7 +157,7 @@ query = "눈이 피로해요"
 
 ### 2️⃣ 스마트 라우터 (SmartRouter)
 
-**파일**: [`app/search/smart_router.py`](file:///d:/yakkobak_be/app/search/smart_router.py)
+**파일**: [`app/search/smart_router.py`](project-folder/app-backend-fastapi/app/search/smart_router.py)
 
 #### 라우팅 로직
 
@@ -186,7 +186,7 @@ else:
 
 ### 3️⃣ Fallback 시스템 (FallbackSystem)
 
-**파일**: [`app/search/fallback_system.py`](file:///d:/yakkobak_be/app/search/fallback_system.py)
+**파일**: [`app/search/fallback_system.py`](project-folder/app-backend-fastapi/app/search/fallback_system.py)
 
 #### 작동 조건
 
@@ -227,7 +227,7 @@ else:
 
 ### 4️⃣ Re-ranking 시스템 (ResultReRanker)
 
-**파일**: [`app/search/reranker.py`](file:///d:/yakkobak_be/app/search/reranker.py)
+**파일**: [`app/search/reranker.py`](project-folder/app-backend-fastapi/app/search/reranker.py)
 
 #### 점수 계산 공식
 
@@ -382,7 +382,7 @@ else:
 ### 시나리오 1: 증상 기반 검색
 
 ```bash
-POST /api/v1/rag/search/intelligent
+POST /api/v1/search/intelligent
 {
     "query": "관절이 아파요",
     "top_k": 5,
@@ -397,7 +397,7 @@ POST /api/v1/rag/search/intelligent
 ### 시나리오 2: 성분 검색
 
 ```bash
-POST /api/v1/rag/search/intelligent
+POST /api/v1/search/intelligent
 {
     "query": "비타민C 포함된 제품",
     "top_k": 10,
@@ -412,7 +412,7 @@ POST /api/v1/rag/search/intelligent
 ### 시나리오 3: 복용 시간 질문
 
 ```bash
-POST /api/v1/rag/search/intelligent
+POST /api/v1/search/intelligent
 {
     "query": "칼슘은 언제 먹어야 하나요?",
     "top_k": 5
@@ -426,7 +426,7 @@ POST /api/v1/rag/search/intelligent
 ### 시나리오 4: SERP 통합 검색
 
 ```bash
-POST /api/v1/rag/search/intelligent
+POST /api/v1/search/intelligent
 {
     "query": "면역력 강화",
     "top_k": 5,
@@ -466,12 +466,12 @@ POST /api/v1/rag/search/intelligent
 
 ## 🔗 관련 파일
 
-- **라우터**: [`app/api/v1/endpoints/rag/routes.py`](file:///d:/yakkobak_be/app/api/v1/endpoints/rag/routes.py#L221-L334)
-- **스키마**: [`app/schemas/rag/schemas.py`](file:///d:/yakkobak_be/app/schemas/rag/schemas.py#L53-L82)
-- **쿼리 분석기**: [`app/search/query_analyzer.py`](file:///d:/yakkobak_be/app/search/query_analyzer.py)
-- **스마트 라우터**: [`app/search/smart_router.py`](file:///d:/yakkobak_be/app/search/smart_router.py)
-- **Fallback 시스템**: [`app/search/fallback_system.py`](file:///d:/yakkobak_be/app/search/fallback_system.py)
-- **Re-ranker**: [`app/search/reranker.py`](file:///d:/yakkobak_be/app/search/reranker.py)
+- **라우터**: [`app/api/v1/endpoints/rag/routes.py`](project-folder/app-backend-fastapi/app/api/v1/endpoints/rag/routes.py#L221-L334)
+- **스키마**: [`app/schemas/rag/schemas.py`](project-folder/app-backend-fastapi/app/schemas/rag/schemas.py)
+- **쿼리 분석기**: [`app/search/query_analyzer.py`](project-folder/app-backend-fastapi/app/search/query_analyzer.py)
+- **스마트 라우터**: [`app/search/smart_router.py`](project-folder/app-backend-fastapi/app/search/smart_router.py)
+- **Fallback 시스템**: [`app/search/fallback_system.py`](project-folder/app-backend-fastapi/app/search/fallback_system.py)
+- **Re-ranker**: [`app/search/reranker.py`](project-folder/app-backend-fastapi/app/search/reranker.py)
 
 ## 📝 요약
 
