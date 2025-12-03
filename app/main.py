@@ -38,3 +38,13 @@ app = create_app()
 @app.get("/")
 def root():
     return {"message": "Welcome to Yakkobak API"}
+
+
+@app.get("/api/v1/health")
+def health_check():
+    """Health check endpoint for Docker healthcheck"""
+    return {
+        "status": "healthy",
+        "service": "yakkobak-api",
+        "version": "0.2.0"
+    }
