@@ -1,6 +1,7 @@
 import logging
 import os
-from logging.handlers import TimedRotatingFileHandler
+import sys
+from logging.handlers import RotatingFileHandler
 
 # 선택적 import - Elasticsearch 로깅 라이브러리
 try:
@@ -16,45 +17,45 @@ config = settings
 
 def get_logger(name: str) -> logging.Logger:
     """로거 생성"""
-    
+
     logger = logging.getLogger(name)
-    
+
     # 이미 핸들러가 설정되어 있으면 반환
     if logger.handlers:
         return logger
-    
+
     logger.setLevel(getattr(logging, config.LOG_LEVEL))
-    
+
     # 기본 포맷 설정
     formatter = logging.Formatter(
         '[%(asctime)s] %(levelname)s in %(name)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
-    
+
     # 콘솔 핸들러
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
-    
-    # 파일 핸들러 (일자별 로테이션)
+
+    # 파일 핸들러 (크기 기반 로테이션 - Windows에서 안전)
     if config.LOG_FILE:
-        os.makedirs(os.path.dirname(config.LOG_FILE), exist_ok=True)
-        
-        # TimedRotatingFileHandler: 매일 자정에 로그 파일 로테이션
-        file_handler = TimedRotatingFileHandler(
-            config.LOG_FILE,
-            when='midnight',        # 자정에 로테이션
-            interval=1,             # 1일마다
-            backupCount=30,         # 최근 30일 보관
-            encoding='utf-8',
-            utc=False               # 로컬 시간 사용
-        )
-        
-        # 로테이션된 파일명 형식: app.log.2025-11-26
-        file_handler.suffix = "%Y-%m-%d"
-        
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+        try:
+            os.makedirs(os.path.dirname(config.LOG_FILE), exist_ok=True)
+
+            # RotatingFileHandler: 파일 크기 기반 로테이션 (Windows에서 더 안정적)
+            file_handler = RotatingFileHandler(
+                config.LOG_FILE,
+                maxBytes=10*1024*1024,  # 10MB
+                backupCount=30,          # 최근 30개 파일 보관
+                encoding='utf-8',
+                delay=True               # 첫 로그까지 파일 생성 지연 (멀티프로세스 환경에서 안전)
+            )
+
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+        except Exception as e:
+            # 파일 핸들러 추가 실패 시 경고만 출력
+            print(f"Warning: Failed to add file handler: {e}", file=sys.stderr)
     
     # Elasticsearch 핸들러 (Kibana 대시보드용)
     if ES_LOGGING_AVAILABLE and config.LOG_TO_ELASTICSEARCH:

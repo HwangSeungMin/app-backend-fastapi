@@ -50,7 +50,7 @@ def create_index_pattern():
     data = {
         "attributes": {
             "title": f"{ES_INDEX}*",
-            "timeFieldName": "report_date"
+            "timeFieldName": "indexed_at"  # 실제 date 타입 필드
         }
     }
 
@@ -75,8 +75,8 @@ def create_saved_search():
             "id": "recent-products",
             "title": "최근 등록 제품",
             "description": "최근 30일 내 등록된 제품",
-            "columns": ["product_name", "company_name", "classification.category", "report_date"],
-            "sort": [["report_date", "desc"]]
+            "columns": ["product_name", "company_name", "classification.category", "indexed_at"],
+            "sort": [["indexed_at", "desc"]]
         }
     ]
 
@@ -257,9 +257,9 @@ def create_visualization_monthly_trend():
                         "type": "date_histogram",
                         "schema": "segment",
                         "params": {
-                            "field": "report_date",
+                            "field": "indexed_at",
                             "interval": "monthly",
-                            "customLabel": "등록 월",
+                            "customLabel": "색인 월",
                             "min_doc_count": 1
                         }
                     }
@@ -400,7 +400,7 @@ def create_visualization_detail_category_tree():
                         "type": "terms",
                         "schema": "segment",
                         "params": {
-                            "field": "classification.category.keyword",
+                            "field": "classification.category",  # 이미 keyword 타입
                             "size": 10,
                             "order": "desc",
                             "orderBy": "1"
@@ -412,7 +412,7 @@ def create_visualization_detail_category_tree():
                         "type": "terms",
                         "schema": "group",
                         "params": {
-                            "field": "classification.detail_category.keyword",
+                            "field": "classification.detail_category",  # 이미 keyword 타입
                             "size": 10,
                             "order": "desc",
                             "orderBy": "1"

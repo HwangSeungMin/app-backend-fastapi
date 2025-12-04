@@ -1,0 +1,36 @@
+# 색인 데이터가 포함된 Elasticsearch 이미지
+FROM docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+
+# Nori 분석 플러그인 설치
+RUN bin/elasticsearch-plugin install analysis-nori --batch
+
+# Python 및 필요한 패키지 설치 (데이터 import용)
+USER root
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip && \
+    pip3 install elasticsearch requests && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# 환경 설정
+ENV discovery.type=single-node
+ENV xpack.security.enabled=false
+ENV ES_JAVA_OPTS="-Xms512m -Xmx512m"
+
+# 데이터 파일 복사
+# NOTE: 먼저 export_es_data.py를 실행하여 data/es_data_YYYYMMDD.json 생성 필요
+COPY data/es_data_*.json /usr/share/elasticsearch/preload_data/es_data.json
+
+# Import 스크립트 복사
+COPY scripts/import_es_data.sh /usr/share/elasticsearch/scripts/import_es_data.sh
+COPY scripts/docker-entrypoint-preloaded.sh /usr/local/bin/docker-entrypoint-preloaded.sh
+
+# 스크립트 실행 권한 부여
+RUN chmod +x /usr/share/elasticsearch/scripts/import_es_data.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint-preloaded.sh
+
+# elasticsearch 유저로 전환
+USER elasticsearch
+
+# Custom entrypoint 사용
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint-preloaded.sh"]

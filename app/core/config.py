@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FILE: str = "logs/app.log"
-    LOG_TO_ELASTICSEARCH: bool = True  # Elasticsearch로 로그 전송 여부
+    LOG_TO_ELASTICSEARCH: bool = True  # Elasticsearch로 로그 전송 여부 (라이브러리 미설치 시 False)
     LOG_ES_INDEX: str = "yakkobak-logs"  # Elasticsearch 로그 인덱스명
 
     # Environment
